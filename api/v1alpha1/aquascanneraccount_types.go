@@ -29,13 +29,16 @@ type AquaScannerAccountSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of AquaScannerAccount. Edit aquascanneraccount_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
 }
 
 // AquaScannerAccountStatus defines the observed state of AquaScannerAccount
 type AquaScannerAccountStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	currentState  string
+	accountName   string
+	accountSecret string
+	metav1.Timestamp
 }
 
 //+kubebuilder:object:root=true
