@@ -1,0 +1,19 @@
+domain: devops.gov.bc.ca
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: aqua-scanner-operator
+repo: github.com/bcgov-platform-services/aqua-scan-cli-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: devops.gov.bc.ca
+  group: mamoa.devops.gov.bc.ca
+  kind: AquaScannerAccount
+  path: github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha1
+  version: v1alpha1
+version: "3"
