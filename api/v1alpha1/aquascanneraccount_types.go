@@ -35,15 +35,15 @@ type AquaScannerAccountSpec struct {
 type AquaScannerAccountStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	currentState  string
-	accountName   string
-	accountSecret string
-	metav1.Timestamp
+	CurrentState     string `json:"currentState"`
+	AccountName      string `json:"accountName"`
+	AccountSecret    string `json:"accountSecret"`
+	metav1.Timestamp `json:"timestamp"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-
+//+kubebuilder:resource:shortName=asa
 // AquaScannerAccount is the Schema for the aquascanneraccounts API
 type AquaScannerAccount struct {
 	metav1.TypeMeta   `json:",inline"`
