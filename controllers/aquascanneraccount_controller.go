@@ -18,14 +18,22 @@ package controllers
 
 import (
 	"context"
+	"os"
+	"strings"
+	"time"
 
+	"k8s.io/apimachinery/pkg/api/errors"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	mamoadevopsgovbccav1alpha1 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha1"
 )
+
+const aquaScannerAccountFinalizer = "mamoa.devops.gov.bc.ca.devops.gov.bc.ca/finalizer"
 
 // AquaScannerAccountReconciler reconciles a AquaScannerAccount object
 type AquaScannerAccountReconciler struct {
@@ -49,8 +57,77 @@ type AquaScannerAccountReconciler struct {
 func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// your logic here
+	// Fetch the aqua scanner account instance
+	aquaScannerAccount := &mamoadevopsgovbccav1alpha1.AquaScannerAccount{}
+	err := r.Get(ctx, req.NamespacedName, aquaScannerAccount)
 
+	if err != nil {
+		if errors.IsNotFound(err) {
+			ctrl.Log.Error(err, "AquaScannerAccount not found. Ignoring as this object is deleted")
+			return ctrl.Result{}, nil
+		}
+		ctrl.Log.Error(err, "Failed to get AquaScannerAccount %v", req.NamespacedName)
+		// if another error it means we failed to get the AquaScannerAccount
+		return ctrl.Result{}, err
+	}
+	// if in wrong namespace
+	if !strings.HasSuffix(req.Namespace, "-tools") {
+		ctrl.Log.Error(err, "AquaScannerAccount can only be created in namespaces ending in -tools. It was created in %v", req.Namespace)
+		err := errors.NewBadRequest("AquaScannerAccount not allowed to be created in a non '-tools' namespace")
+
+		aquaScannerAccount.Status.CurrentState = "Failure"
+
+		aquaScannerAccount.Status.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
+		updateErr := r.Status().Update(ctx, aquaScannerAccount)
+
+		if updateErr != nil {
+			ctrl.Log.Error(err, "Failed to update aquaScannerAccount status")
+			return ctrl.Result{}, err
+		}
+
+		return ctrl.Result{Requeue: false}, err
+	}
+
+	// Check if the AquaScannerAccount instance is marked to be deleted, which is
+	// indicated by the deletion timestamp being set.
+	isAquaScannerAccountMarkedToBeDeleted := aquaScannerAccount.GetDeletionTimestamp() != nil
+	if isAquaScannerAccountMarkedToBeDeleted {
+		if controllerutil.ContainsFinalizer(aquaScannerAccount, aquaScannerAccountFinalizer) {
+			// Run finalization logic for memcachedFinalizer. If the
+			// finalization logic fails, don't remove the finalizer so
+			// that we can retry during the next reconciliation.
+			if err := r.finalizeAquaScannerAccount(ctrl.Log, aquaScannerAccount); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			// Remove memcachedFinalizer. Once all finalizers have been
+			// removed, the object will be deleted.
+			controllerutil.RemoveFinalizer(aquaScannerAccount, aquaScannerAccountFinalizer)
+			err := r.Update(ctx, aquaScannerAccount)
+			if err != nil {
+				ctrl.Log.Error(err, "Failed to remove aquaScannerAccount Finalizer")
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, nil
+	}
+
+	// Add finalizer for this CR
+	if !controllerutil.ContainsFinalizer(aquaScannerAccount, aquaScannerAccountFinalizer) {
+		controllerutil.AddFinalizer(aquaScannerAccount, aquaScannerAccountFinalizer)
+		err = r.Update(ctx, aquaScannerAccount)
+		if err != nil {
+			ctrl.Log.Error(err, "Failed to add aquaScannerAccount Finalizer")
+			return ctrl.Result{}, err
+		}
+	}
+
+	// your logic here
+	// possible states are Running New Complete Failure
+	// if the status of the aqua scanner account is !Complete or !Failure or !Running
+	// update state to Running
+	// create the aqua scanner user and embed credentials in status
+	// change status to complete or failure
 	return ctrl.Result{}, nil
 }
 
@@ -59,4 +136,21 @@ func (r *AquaScannerAccountReconciler) SetupWithManager(mgr ctrl.Manager) error 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&mamoadevopsgovbccav1alpha1.AquaScannerAccount{}).
 		Complete(r)
+}
+
+func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log.DelegatingLogger, m *mamoadevopsgovbccav1alpha1.AquaScannerAccount, aquaScannerName string) error {
+	// TODO(user): Add the cleanup steps that the operator
+	AQUA_URL := os.Getenv("AQUA_URL")
+	AQUA_SECRET := os.Getenv("AQUA_SECRET")
+
+	// needs to do before the CR can be deleted. Examples
+	// of finalizers include performing backups and deleting
+	// resources that are not owned by this CR, like a PVC.
+	reqLogger.Info("Successfully finalized AquaScannerAccount")
+	return nil
+}
+
+func (r *AquaScannerAccountReconciler) AquaScannerAccountName(ctx context.Context, req ctrl.Request) string {
+	AQUA_SCANNER_PREFIX := "ScannerCLI_" + req.Namespace
+	return AQUA_SCANNER_PREFIX
 }
