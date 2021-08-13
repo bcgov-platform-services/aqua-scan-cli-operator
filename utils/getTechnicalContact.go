@@ -2,6 +2,13 @@ package utils
 
 import "strings"
 
+// technical contact information is jumbled up with other contact information in the namespace annotation 'contacts'
+// it supposes the form:
+/**
+	"- role: Product Owner\n  email: patrick.simonian@gov.bc.ca\n  rocketchat:
+	\n- role: Technical Lead\n  email: patrick.simonian@gov.bc.ca\n  rocketchat:
+	\n"
+**/
 func getTechnicalContactFromAnnotation(contacts string) string {
 	contactsList := strings.Split(contacts, "\n")
 

@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -33,7 +34,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	mamoadevopsgovbccav1alpha1 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha1"
-	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
 )
 
 const aquaScannerAccountFinalizer = "mamoa.devops.gov.bc.ca.devops.gov.bc.ca/finalizer"
@@ -158,20 +158,31 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}
 		namespacePrefix := strings.TrimSuffix(req.Namespace, "-test")
 
-		var namespace v1.APIGroup.namespace
-		namespaceErr := r.Get(ctx, req.Namespace, namespace)
+		var namespace corev1.Namespace
+		namespaceErr := r.Get(ctx, req.NamespacedName, &namespace)
 
 		if namespaceErr != nil {
 
 		}
 
+		contactAnnotation := namespace.Annotations["contacts"]
+
+		technicalLeadEmail := utils.getTechnicalContactFromAnnotation(contactAnnotation)
+
 		account := NamespaceAccount{
 			Name:               aquaScannerAccountName,
 			Description:        "Scanner scoped to " + namespacePrefix + "-* and DockerHub only.",
-			TechnicalLeadEmail: "foo@foo.com",
+			TechnicalLeadEmail: technicalLeadEmail,
+			NamespacePrefix:    namespacePrefix,
 		}
 		// create application scope
-		aquaAccountPassword := utils.CreatePassword(8, true, true)
+
+		applicationScopeErr := createAquaApplicationScope(ctrl.Log, account)
+
+		if applicationScopeErr != nil {
+
+		}
+		// aquaAccountPassword := utils.CreatePassword(8, true, true)
 	}
 	// your logic here
 	// possible states are Running New Complete Failure

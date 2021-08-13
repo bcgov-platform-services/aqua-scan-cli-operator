@@ -1,0 +1,58 @@
+{
+  "name": "{{ .Name }}",
+  "description": "{{ .Description }}",
+  "owner_email": "{{ .TechnicalLeadEmail }}",
+  "categories": {
+    "artifacts": {
+      "image": {
+        "expression": "(v1 && v2) || v3",
+        "variables": [
+          {
+            "attribute": "aqua.registry",
+            "value": "\"OCP Registry\""
+          },
+          {
+            "attribute": "image.repo",
+            "value": "{{ .NamespacePrefix }}-*"
+          },
+          {
+            "attribute": "aqua.registry",
+            "value": "\"Docker Hub\""
+          }
+        ]
+      },
+      "function": {
+        "expression": "",
+        "variables": []
+      },
+      "cf": {
+        "expression": "",
+        "variables": []
+      }
+    },
+    "workloads": {
+      "kubernetes": {
+        "expression": "",
+        "variables": []
+      },
+      "os": {
+        "expression": "",
+        "variables": []
+      },
+      "cf": {
+        "expression": "",
+        "variables": []
+      }
+    },
+    "infrastructure": {
+      "kubernetes": {
+        "expression": "",
+        "variables": []
+      },
+      "os": {
+        "expression": "",
+        "variables": []
+      }
+    }
+  }
+}
