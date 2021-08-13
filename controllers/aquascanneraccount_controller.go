@@ -33,6 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	mamoadevopsgovbccav1alpha1 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha1"
+	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
 )
 
 const aquaScannerAccountFinalizer = "mamoa.devops.gov.bc.ca.devops.gov.bc.ca/finalizer"
@@ -41,6 +42,13 @@ const aquaScannerAccountFinalizer = "mamoa.devops.gov.bc.ca.devops.gov.bc.ca/fin
 type AquaScannerAccountReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+}
+
+type NamespaceAccount struct {
+	Name               string
+	NamespacePrefix    string
+	Description        string
+	TechnicalLeadEmail string
 }
 
 //+kubebuilder:rbac:groups=mamoa.devops.gov.bc.ca.devops.gov.bc.ca,resources=aquascanneraccounts,verbs=get;list;watch;create;update;patch;delete
@@ -142,13 +150,28 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}
 
 		if accountExists {
+			// only need to delete account becuase we are regenerating a password
 			delErr := deleteAquaAccount(ctrl.Log, aquaScannerAccountName)
 			if delErr != nil {
 				return ctrl.Result{}, delErr
 			}
 		}
+		namespacePrefix := strings.TrimSuffix(req.Namespace, "-test")
 
-		aquaAccountPassword := utils.createPassword(8, true, true)
+		var namespace v1.APIGroup.namespace
+		namespaceErr := r.Get(ctx, req.Namespace, namespace)
+
+		if namespaceErr != nil {
+
+		}
+
+		account := NamespaceAccount{
+			Name:               aquaScannerAccountName,
+			Description:        "Scanner scoped to " + namespacePrefix + "-* and DockerHub only.",
+			TechnicalLeadEmail: "foo@foo.com",
+		}
+		// create application scope
+		aquaAccountPassword := utils.CreatePassword(8, true, true)
 	}
 	// your logic here
 	// possible states are Running New Complete Failure
@@ -168,11 +191,14 @@ func (r *AquaScannerAccountReconciler) SetupWithManager(mgr ctrl.Manager) error 
 
 func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log.DelegatingLogger, m *mamoadevopsgovbccav1alpha1.AquaScannerAccount, aquaScannerName string) error {
 
-	delErr := deleteAquaAccount(ctrl.Log, aquaScannerName)
+	delAcctErr := deleteAquaAccount(ctrl.Log, aquaScannerName)
 
-	if delErr != nil {
-		return delErr
+	if delAcctErr != nil {
+		return delAcctErr
 	}
+	// delete application scope
+	// delete role
+
 	// needs to do before the CR can be deleted. Examples
 	// of finalizers include performing backups and deleting
 	// resources that are not owned by this CR, like a PVC.
@@ -238,7 +264,10 @@ func deleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) erro
 // func deleteAquaApplicationScope() error {}
 // func deleteAquaRole() error {}
 // func createAquaRole() error {}
-// func createAquaApplicationScope() error {}
+
+func createAquaApplicationScope(reqLogger *log.DelegatingLogger, namespaceAccount NamespaceAccount) error {
+
+}
 
 func createAquaAccount(reqLogger *log.DelegatingLogger, accountName string, accountPassword string) error {
 	reqLogger.Info("Creating user %v in aqua", accountName)

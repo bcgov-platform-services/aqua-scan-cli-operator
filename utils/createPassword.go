@@ -3,7 +3,7 @@ package utils
 import "math/rand"
 
 // https://alan-g-bardales.medium.com/password-generator-with-go-golang-c31190121008
-func createPassword(length int, hasNumbers bool, hasSymbols bool) string {
+func CreatePassword(length int, hasNumbers bool, hasSymbols bool) string {
 	const voc string = "abcdfghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	const numbers string = "0123456789"
 	const symbols string = "!@#$%&*+_-="
