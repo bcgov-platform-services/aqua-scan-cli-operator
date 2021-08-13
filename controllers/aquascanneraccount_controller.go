@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -168,7 +169,7 @@ func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log
 }
 
 func doesAquaAccountAlreadyExist(reqLogger *log.DelegatingLogger, accountName string) (bool, error) {
-	ctrl.Log.Info("Checking if %v was created previously in aqua", accountName)
+	reqLogger.Info("Checking if %v was created previously in aqua", accountName)
 	reqUrl := os.Getenv("AQUA_URL") + "/users/" + accountName
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", reqUrl, nil)
@@ -177,14 +178,25 @@ func doesAquaAccountAlreadyExist(reqLogger *log.DelegatingLogger, accountName st
 
 	res, err := client.Do(req)
 
+	client.CloseIdleConnections()
+
 	if err != nil {
 		reqLogger.Error(err, "Failed request to GET %v from aqua", accountName)
 		return false, err
 	}
 
 	if res.StatusCode == 404 {
+		reqLogger.Info("User %v not found in aqua", accountName)
 		return false, nil
 	}
 
-	return true, nil
+	if res.StatusCode == 200 {
+		reqLogger.Info("User %v already exists in aqua", accountName)
+		return true, nil
+	}
+
+	errorMsg := "There was an issue making the request to GET user " + accountName + " from aqua"
+	qualifiedResource := schema.GroupResource{mamoadevopsgovbccav1alpha1.GroupVersion.Group, "AquaScannerAccount"}
+
+	return false, errors.NewGenericServerResponse(res.StatusCode, "GET", qualifiedResource, "Generic Error", errorMsg, 10, true)
 }
