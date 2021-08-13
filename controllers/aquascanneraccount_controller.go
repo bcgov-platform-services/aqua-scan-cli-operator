@@ -178,8 +178,6 @@ func doesAquaAccountAlreadyExist(reqLogger *log.DelegatingLogger, accountName st
 
 	res, err := client.Do(req)
 
-	client.CloseIdleConnections()
-
 	if err != nil {
 		reqLogger.Error(err, "Failed request to GET %v from aqua", accountName)
 		return false, err
