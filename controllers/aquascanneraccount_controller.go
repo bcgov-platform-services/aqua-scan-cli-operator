@@ -94,14 +94,14 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 	isAquaScannerAccountMarkedToBeDeleted := aquaScannerAccount.GetDeletionTimestamp() != nil
 	if isAquaScannerAccountMarkedToBeDeleted {
 		if controllerutil.ContainsFinalizer(aquaScannerAccount, aquaScannerAccountFinalizer) {
-			// Run finalization logic for memcachedFinalizer. If the
+			// Run finalization logic for aquaScannerAccountFinalizer. If the
 			// finalization logic fails, don't remove the finalizer so
 			// that we can retry during the next reconciliation.
 			if err := r.finalizeAquaScannerAccount(ctrl.Log, aquaScannerAccount, aquaScannerAccountName); err != nil {
 				return ctrl.Result{}, err
 			}
 
-			// Remove memcachedFinalizer. Once all finalizers have been
+			// Remove aquaScannerAccountFinalizer. Once all finalizers have been
 			// removed, the object will be deleted.
 			controllerutil.RemoveFinalizer(aquaScannerAccount, aquaScannerAccountFinalizer)
 			err := r.Update(ctx, aquaScannerAccount)
