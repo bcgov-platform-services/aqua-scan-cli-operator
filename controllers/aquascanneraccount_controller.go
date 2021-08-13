@@ -60,6 +60,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 	// Fetch the aqua scanner account instance
 	aquaScannerAccount := &mamoadevopsgovbccav1alpha1.AquaScannerAccount{}
 	err := r.Get(ctx, req.NamespacedName, aquaScannerAccount)
+	aquaScannerAccountName := "ScannerCLI_" + req.Namespace
 
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -96,7 +97,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			// Run finalization logic for memcachedFinalizer. If the
 			// finalization logic fails, don't remove the finalizer so
 			// that we can retry during the next reconciliation.
-			if err := r.finalizeAquaScannerAccount(ctrl.Log, aquaScannerAccount); err != nil {
+			if err := r.finalizeAquaScannerAccount(ctrl.Log, aquaScannerAccount, aquaScannerAccountName); err != nil {
 				return ctrl.Result{}, err
 			}
 
@@ -148,9 +149,4 @@ func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log
 	// resources that are not owned by this CR, like a PVC.
 	reqLogger.Info("Successfully finalized AquaScannerAccount")
 	return nil
-}
-
-func (r *AquaScannerAccountReconciler) AquaScannerAccountName(ctx context.Context, req ctrl.Request) string {
-	AQUA_SCANNER_PREFIX := "ScannerCLI_" + req.Namespace
-	return AQUA_SCANNER_PREFIX
 }
