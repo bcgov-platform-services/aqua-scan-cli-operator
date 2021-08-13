@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	mamoadevopsgovbccav1alpha1 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha1"
+	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
 )
 
 const aquaScannerAccountFinalizer = "mamoa.devops.gov.bc.ca.devops.gov.bc.ca/finalizer"
@@ -58,9 +59,11 @@ type NamespaceAccount struct {
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the AquaScannerAccount object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
+// - finish create/delete func for:
+//    - applicationscope
+//    - role
+// - finish finalizer deletion of all aqua objects
+// - finish error handling for main reconcilliation
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.9.2/pkg/reconcile
@@ -167,7 +170,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		contactAnnotation := namespace.Annotations["contacts"]
 
-		technicalLeadEmail := utils.getTechnicalContactFromAnnotation(contactAnnotation)
+		technicalLeadEmail := utils.GetTechnicalContactFromAnnotation(contactAnnotation)
 
 		account := NamespaceAccount{
 			Name:               aquaScannerAccountName,
@@ -175,13 +178,16 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			TechnicalLeadEmail: technicalLeadEmail,
 			NamespacePrefix:    namespacePrefix,
 		}
-		// create application scope
 
 		applicationScopeErr := createAquaApplicationScope(ctrl.Log, account)
 
 		if applicationScopeErr != nil {
 
 		}
+
+		// create the role
+		// create the user
+		// set status to Complete
 		// aquaAccountPassword := utils.CreatePassword(8, true, true)
 	}
 	// your logic here

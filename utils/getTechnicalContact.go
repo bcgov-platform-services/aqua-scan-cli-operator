@@ -9,7 +9,7 @@ import "strings"
 	\n- role: Technical Lead\n  email: patrick.simonian@gov.bc.ca\n  rocketchat:
 	\n"
 **/
-func getTechnicalContactFromAnnotation(contacts string) string {
+func GetTechnicalContactFromAnnotation(contacts string) string {
 	contactsList := strings.Split(contacts, "\n")
 
 	var technicalContact string
