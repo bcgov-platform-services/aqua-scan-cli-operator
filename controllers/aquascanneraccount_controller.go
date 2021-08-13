@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -61,6 +62,9 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 	aquaScannerAccount := &mamoadevopsgovbccav1alpha1.AquaScannerAccount{}
 	err := r.Get(ctx, req.NamespacedName, aquaScannerAccount)
 	aquaScannerAccountName := "ScannerCLI_" + req.Namespace
+
+	aquaUrl := os.Getenv("AQUA_URL")
+	aquaSecret := os.Getenv("AQUA_SECRET")
 
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -123,6 +127,18 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}
 	}
 
+	if aquaScannerAccount.Status.CurrentState != "Complete" {
+		aquaScannerAccount.Status.CurrentState = "Running"
+		aquaScannerAccount.Status.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
+		updateErr := r.Status().Update(ctx, aquaScannerAccount)
+		if updateErr != nil {
+			ctrl.Log.Error(err, "Failed to update aquaScannerAccount Status")
+			return ctrl.Result{}, err
+		}
+
+		// if there are existing accounts with the same name in aqua they must be deleted first
+
+	}
 	// your logic here
 	// possible states are Running New Complete Failure
 	// if the status of the aqua scanner account is !Complete or !Failure or !Running
@@ -141,12 +157,34 @@ func (r *AquaScannerAccountReconciler) SetupWithManager(mgr ctrl.Manager) error 
 
 func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log.DelegatingLogger, m *mamoadevopsgovbccav1alpha1.AquaScannerAccount, aquaScannerName string) error {
 	// TODO(user): Add the cleanup steps that the operator
-	AQUA_URL := os.Getenv("AQUA_URL")
-	AQUA_SECRET := os.Getenv("AQUA_SECRET")
+	aquaUrl := os.Getenv("AQUA_URL")
+	aquaSecret := os.Getenv("AQUA_SECRET")
 
 	// needs to do before the CR can be deleted. Examples
 	// of finalizers include performing backups and deleting
 	// resources that are not owned by this CR, like a PVC.
 	reqLogger.Info("Successfully finalized AquaScannerAccount")
 	return nil
+}
+
+func doesAquaAccountAlreadyExist(reqLogger *log.DelegatingLogger, accountName string) (bool, error) {
+	ctrl.Log.Info("Checking if %v was created previously in aqua", accountName)
+	reqUrl := os.Getenv("AQUA_URL") + "/users/" + accountName
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", reqUrl, nil)
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("AQUA_SECRET"))
+	req.Header.Set("Accept", "application/json")
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		reqLogger.Error(err, "Failed request to GET %v from aqua", accountName)
+		return false, err
+	}
+
+	if res.StatusCode == 404 {
+		return false, nil
+	}
+
+	return true, nil
 }
