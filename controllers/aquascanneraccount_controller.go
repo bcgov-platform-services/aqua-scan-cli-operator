@@ -64,9 +64,6 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 	err := r.Get(ctx, req.NamespacedName, aquaScannerAccount)
 	aquaScannerAccountName := "ScannerCLI_" + req.Namespace
 
-	aquaUrl := os.Getenv("AQUA_URL")
-	aquaSecret := os.Getenv("AQUA_SECRET")
-
 	if err != nil {
 		if errors.IsNotFound(err) {
 			ctrl.Log.Error(err, "AquaScannerAccount not found. Ignoring as this object is deleted")
@@ -138,7 +135,20 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}
 
 		// if there are existing accounts with the same name in aqua they must be deleted first
+		accountExists, aquaResErr := doesAquaAccountAlreadyExist(ctrl.Log, aquaScannerAccountName)
 
+		if aquaResErr != nil {
+			return ctrl.Result{}, aquaResErr
+		}
+
+		if accountExists {
+			delErr := deleteAquaAccount(ctrl.Log, aquaScannerAccountName)
+			if delErr != nil {
+				return ctrl.Result{}, delErr
+			}
+		}
+
+		aquaAccountPassword := utils.createPassword(8, true, true)
 	}
 	// your logic here
 	// possible states are Running New Complete Failure
@@ -157,10 +167,12 @@ func (r *AquaScannerAccountReconciler) SetupWithManager(mgr ctrl.Manager) error 
 }
 
 func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log.DelegatingLogger, m *mamoadevopsgovbccav1alpha1.AquaScannerAccount, aquaScannerName string) error {
-	// TODO(user): Add the cleanup steps that the operator
-	aquaUrl := os.Getenv("AQUA_URL")
-	aquaSecret := os.Getenv("AQUA_SECRET")
 
+	delErr := deleteAquaAccount(ctrl.Log, aquaScannerName)
+
+	if delErr != nil {
+		return delErr
+	}
 	// needs to do before the CR can be deleted. Examples
 	// of finalizers include performing backups and deleting
 	// resources that are not owned by this CR, like a PVC.
@@ -197,4 +209,56 @@ func doesAquaAccountAlreadyExist(reqLogger *log.DelegatingLogger, accountName st
 	qualifiedResource := schema.GroupResource{mamoadevopsgovbccav1alpha1.GroupVersion.Group, "AquaScannerAccount"}
 
 	return false, errors.NewGenericServerResponse(res.StatusCode, "GET", qualifiedResource, "Generic Error", errorMsg, 10, true)
+}
+
+func deleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) error {
+	reqLogger.Info("Deleting user %v in aqua", accountName)
+	reqUrl := os.Getenv("AQUA_URL") + "/users/" + accountName
+	client := &http.Client{}
+	req, _ := http.NewRequest("DELETE", reqUrl, nil)
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("AQUA_SECRET"))
+	req.Header.Set("Accept", "application/json")
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		reqLogger.Error(err, "Failed request to DELETE %v from aqua", accountName)
+		return err
+	}
+
+	if res.StatusCode != 204 {
+		reqLogger.Error(err, "Failed to DELETE %v from aqua", accountName)
+		return errors.NewBadRequest("Failed to DELETE user from aqua")
+	}
+	reqLogger.Info("User %v deleted", accountName)
+	return nil
+}
+
+// TODO
+// func deleteAquaApplicationScope() error {}
+// func deleteAquaRole() error {}
+// func createAquaRole() error {}
+// func createAquaApplicationScope() error {}
+
+func createAquaAccount(reqLogger *log.DelegatingLogger, accountName string, accountPassword string) error {
+	reqLogger.Info("Creating user %v in aqua", accountName)
+	reqUrl := os.Getenv("AQUA_URL") + "/users/"
+	client := &http.Client{}
+	req, _ := http.NewRequest("POST", reqUrl, nil)
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("AQUA_SECRET"))
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		reqLogger.Error(err, "Failed request to POST %v from aqua", accountName)
+		return err
+	}
+
+	if res.StatusCode != 204 {
+		reqLogger.Error(err, "Failed to POST %v from aqua", accountName)
+		return errors.NewBadRequest("Failed to POST user from aqua")
+	}
+	reqLogger.Info("User %v created in aqua", accountName)
+	return nil
 }
