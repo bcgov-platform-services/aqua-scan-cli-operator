@@ -12,10 +12,3 @@ func TestUtilsGetTechnicalContact(t *testing.T) {
 		t.Errorf("GetTechnicalContactFromAnnotation was supposed to return patrick.simonian@gov.bc.ca but got %v", tc)
 	}
 }
-func TestUtilsCreatePassword(t *testing.T) {
-	password := CreatePassword(8)
-
-	if len(password) != 8 {
-		t.Errorf("CreatePassword was supposed to return a string of 8 characters but instead got %v", len(password))
-	}
-}

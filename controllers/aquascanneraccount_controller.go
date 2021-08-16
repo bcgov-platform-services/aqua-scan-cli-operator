@@ -17,7 +17,12 @@ limitations under the License.
 package controllers
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"html/template"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -35,6 +40,7 @@ import (
 
 	mamoadevopsgovbccav1alpha1 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha1"
 	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
+	"github.com/m1/go-generate-password/generator"
 )
 
 const aquaScannerAccountFinalizer = "mamoa.devops.gov.bc.ca.devops.gov.bc.ca/finalizer"
@@ -45,11 +51,27 @@ type AquaScannerAccountReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-type NamespaceAccount struct {
+type ApplicationScope struct {
 	Name               string
 	NamespacePrefix    string
 	Description        string
 	TechnicalLeadEmail string
+}
+
+type Role struct {
+	Name        string
+	Description string
+	ApplicationScope
+}
+
+type User struct {
+	Name string
+	Role
+	Password string
+}
+
+type aquaResponseJson struct {
+	Message string `json:"message"`
 }
 
 //+kubebuilder:rbac:groups=mamoa.devops.gov.bc.ca.devops.gov.bc.ca,resources=aquascanneraccounts,verbs=get;list;watch;create;update;patch;delete
@@ -95,8 +117,8 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		updateErr := r.Status().Update(ctx, aquaScannerAccount)
 
 		if updateErr != nil {
-			ctrl.Log.Error(err, "Failed to update aquaScannerAccount status")
-			return ctrl.Result{}, err
+			ctrl.Log.Error(updateErr, "Failed to update aquaScannerAccount status")
+			return ctrl.Result{}, updateErr
 		}
 
 		return ctrl.Result{Requeue: false}, err
@@ -172,23 +194,67 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		technicalLeadEmail := utils.GetTechnicalContactFromAnnotation(contactAnnotation)
 
-		account := NamespaceAccount{
+		applicationScope := ApplicationScope{
 			Name:               aquaScannerAccountName,
 			Description:        "Scanner scoped to " + namespacePrefix + "-* and DockerHub only.",
 			TechnicalLeadEmail: technicalLeadEmail,
 			NamespacePrefix:    namespacePrefix,
 		}
 
-		applicationScopeErr := createAquaApplicationScope(ctrl.Log, account)
+		role := Role{
+			Name:             aquaScannerAccountName,
+			Description:      "AquaScannerAccount created Role to allow Scanning of resources scoped to " + namespacePrefix + "-* and DockerHub only.",
+			ApplicationScope: applicationScope,
+		}
+
+		applicationScopeErr := createAquaApplicationScope(ctrl.Log, applicationScope)
 
 		if applicationScopeErr != nil {
 
 		}
 
-		// create the role
-		// create the user
+		roleErr := createAquaRole(ctrl.Log, role)
+
+		if roleErr != nil {
+
+		}
+
+		config := generator.Config{
+			Length:                     16,
+			IncludeSymbols:             false,
+			IncludeNumbers:             true,
+			IncludeLowercaseLetters:    true,
+			IncludeUppercaseLetters:    true,
+			ExcludeSimilarCharacters:   true,
+			ExcludeAmbiguousCharacters: true,
+		}
+		g, _ := generator.New(&config)
+
+		pwd, _ := g.Generate()
+
+		user := User{
+			Name:     aquaScannerAccountName,
+			Password: *pwd,
+			Role:     role,
+		}
+
+		userErr := createAquaAccount(ctrl.Log, user)
+
+		if userErr != nil {
+
+		}
+
 		// set status to Complete
-		// aquaAccountPassword := utils.CreatePassword(8, true, true)
+		aquaScannerAccount.Status.CurrentState = "Failure"
+
+		aquaScannerAccount.Status.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
+		updateErr = r.Status().Update(ctx, aquaScannerAccount)
+
+		if updateErr != nil {
+			ctrl.Log.Error(updateErr, "Failed to update aquaScannerAccount status")
+			return ctrl.Result{}, updateErr
+		}
+
 	}
 	// your logic here
 	// possible states are Running New Complete Failure
@@ -280,31 +346,144 @@ func deleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) erro
 // TODO
 // func deleteAquaApplicationScope() error {}
 // func deleteAquaRole() error {}
-// func createAquaRole() error {}
 
-func createAquaApplicationScope(reqLogger *log.DelegatingLogger, namespaceAccount NamespaceAccount) error {
-	return nil
+func createAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
+	reqLogger.Info("Creating Role %v in aqua", role.Name)
+
+	b, fileErr := ioutil.ReadFile("../templates/Role.json.tmpl")
+
+	if fileErr != nil {
+		reqLogger.Error(fileErr, "Failed to read template file Role.json.tmpl")
+		return fileErr
+	}
+
+	ut, templateErr := template.New("Role").Parse(string(b))
+
+	if templateErr != nil {
+		reqLogger.Error(templateErr, "Failed to parse template file Role.json.tmpl")
+		return templateErr
+	}
+
+	var roleBuffer bytes.Buffer
+	ut.Execute(&roleBuffer, role)
+
+	reqUrl := os.Getenv("AQUA_URL") + "/access_management/roles"
+	client := &http.Client{}
+	req, _ := http.NewRequest("POST", reqUrl, &roleBuffer)
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("AQUA_SECRET"))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		reqLogger.Error(err, "Failed request to POST to /access_management/roles in aqua")
+		return err
+	}
+	defer res.Body.Close()
+
+	var jsonData aquaResponseJson
+	body, _ := ioutil.ReadAll(res.Body)
+
+	json.Unmarshal(body, &jsonData)
+
+	if res.StatusCode == 404 && strings.Contains(jsonData.Message, "role "+role.Name+" already exists") || res.StatusCode == 201 {
+		return nil
+	} else {
+		e := errors.NewBadRequest(fmt.Sprintf("Error: Could not create role, the response status from aqua was %v", res.StatusCode))
+
+		reqLogger.Error(e, "Unable to create Role")
+		return e
+	}
 }
 
-func createAquaAccount(reqLogger *log.DelegatingLogger, accountName string, accountPassword string) error {
-	reqLogger.Info("Creating user %v in aqua", accountName)
+func createAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope ApplicationScope) error {
+	reqLogger.Info("Creating applicationScope %v-* in aqua", appScope.NamespacePrefix)
+
+	b, fileErr := ioutil.ReadFile("../templates/ApplicationScope.json.tmpl")
+
+	if fileErr != nil {
+		reqLogger.Error(fileErr, "Failed to read template file ApplicationScope.json.tmpl")
+		return fileErr
+	}
+
+	ut, templateErr := template.New("ApplicationScope").Parse(string(b))
+
+	if templateErr != nil {
+		reqLogger.Error(templateErr, "Failed to parse template file ApplicationScope.json.tmpl")
+		return templateErr
+	}
+
+	var appScopeBuffer bytes.Buffer
+	ut.Execute(&appScopeBuffer, appScope)
+
+	reqUrl := os.Getenv("AQUA_URL") + "/access_management/scopes"
+	client := &http.Client{}
+	req, _ := http.NewRequest("POST", reqUrl, &appScopeBuffer)
+	req.Header.Set("Authorization", "Bearer "+os.Getenv("AQUA_SECRET"))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		reqLogger.Error(err, "Failed request to POST to /access_management/scopes in aqua")
+		return err
+	}
+	defer res.Body.Close()
+
+	var jsonData aquaResponseJson
+	body, _ := ioutil.ReadAll(res.Body)
+
+	json.Unmarshal(body, &jsonData)
+
+	if res.StatusCode == 404 && strings.Contains(jsonData.Message, "application scope "+appScope.Name+" already exists") || res.StatusCode == 201 {
+		return nil
+	} else {
+		e := errors.NewBadRequest(fmt.Sprintf("Error: Could not create ApplicationScope, the response status from aqua was %v", res.StatusCode))
+
+		reqLogger.Error(e, "Unable to create ApplicationScope")
+		return e
+	}
+}
+
+func createAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
+	reqLogger.Info("Creating user %v in aqua", user.Name)
+
+	b, fileErr := ioutil.ReadFile("../templates/User.json.tmpl")
+
+	if fileErr != nil {
+		reqLogger.Error(fileErr, "Failed to read template file User.json.tmpl")
+		return fileErr
+	}
+
+	ut, templateErr := template.New("User").Parse(string(b))
+
+	if templateErr != nil {
+		reqLogger.Error(templateErr, "Failed to parse template file User.json.tmpl")
+		return templateErr
+	}
+
+	var userBuffer bytes.Buffer
+	ut.Execute(&userBuffer, user)
+
 	reqUrl := os.Getenv("AQUA_URL") + "/users/"
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", reqUrl, nil)
+	req, _ := http.NewRequest("POST", reqUrl, &userBuffer)
 	req.Header.Set("Authorization", "Bearer "+os.Getenv("AQUA_SECRET"))
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := client.Do(req)
 
 	if err != nil {
-		reqLogger.Error(err, "Failed request to POST %v from aqua", accountName)
+		reqLogger.Error(err, "Failed request to POST %v from aqua", user.Name)
 		return err
 	}
 
 	if res.StatusCode != 204 {
-		reqLogger.Error(err, "Failed to POST %v from aqua", accountName)
+		reqLogger.Error(err, "Failed to POST %v from aqua. Status code is %v", user.Name, res.StatusCode)
 		return errors.NewBadRequest("Failed to POST user from aqua")
 	}
-	reqLogger.Info("User %v created in aqua", accountName)
+	reqLogger.Info("User %v created in aqua", user.Name)
 	return nil
 }
