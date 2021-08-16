@@ -21,5 +21,5 @@ func GetTechnicalContactFromAnnotation(contacts string) string {
 	}
 
 	// technical contact still has "email: foo@bar.com" which needs to be trimmed
-	return strings.TrimPrefix(technicalContact, "email: ")
+	return strings.TrimPrefix(strings.Trim(technicalContact, " "), "email: ")
 }

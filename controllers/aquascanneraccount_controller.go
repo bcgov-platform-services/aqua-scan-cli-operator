@@ -249,7 +249,7 @@ func doesAquaAccountAlreadyExist(reqLogger *log.DelegatingLogger, accountName st
 	}
 
 	errorMsg := "There was an issue making the request to GET user " + accountName + " from aqua"
-	qualifiedResource := schema.GroupResource{mamoadevopsgovbccav1alpha1.GroupVersion.Group, "AquaScannerAccount"}
+	qualifiedResource := schema.GroupResource{Group: mamoadevopsgovbccav1alpha1.GroupVersion.Group, Resource: "AquaScannerAccount"}
 
 	return false, errors.NewGenericServerResponse(res.StatusCode, "GET", qualifiedResource, "Generic Error", errorMsg, 10, true)
 }
@@ -283,7 +283,7 @@ func deleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) erro
 // func createAquaRole() error {}
 
 func createAquaApplicationScope(reqLogger *log.DelegatingLogger, namespaceAccount NamespaceAccount) error {
-
+	return nil
 }
 
 func createAquaAccount(reqLogger *log.DelegatingLogger, accountName string, accountPassword string) error {
