@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/kataras/jwt"
@@ -31,11 +32,13 @@ type JwtPayload struct {
 	Exp int64 `json:"exp"`
 }
 
+var lock = &sync.Mutex{}
+var aquaAuth *AquaAuth
+
 func (aa *AquaAuth) GetJWT() string {
 	now := time.Now().Unix()
 
-	if now > aa.exp {
-		fmt.Println("The previous token is expired. Relogging into Aqua.")
+	if aa.exp == 0 || now > aa.exp {
 		err := aa.Login()
 
 		if err != nil {
@@ -98,4 +101,16 @@ func (aa *AquaAuth) Login() error {
 		e := fmt.Errorf("failed to login to Aqua, returned status code was %v", res.StatusCode)
 		return e
 	}
+}
+
+func GetAquaAuth() *AquaAuth {
+	if aquaAuth == nil {
+		lock.Lock()
+		defer lock.Unlock()
+		if aquaAuth == nil {
+
+			aquaAuth = &AquaAuth{}
+		}
+	}
+	return aquaAuth
 }
