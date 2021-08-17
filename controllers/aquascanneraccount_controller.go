@@ -290,11 +290,16 @@ func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log
 }
 
 func doesAquaAccountAlreadyExist(reqLogger *log.DelegatingLogger, accountName string) (bool, error) {
+
+	aquaAuth := utils.GetAquaAuth()
+
+	jwt := aquaAuth.GetJWT()
+
 	reqLogger.Info("Checking if %v was created previously in aqua", accountName)
 	reqUrl := os.Getenv("AQUA_URL") + "/users/" + accountName
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", reqUrl, nil)
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("AQUA_SECRET"))
+	req.Header.Set("Authorization", "Bearer "+jwt)
 	req.Header.Set("Accept", "application/json")
 
 	res, err := client.Do(req)
@@ -322,10 +327,14 @@ func doesAquaAccountAlreadyExist(reqLogger *log.DelegatingLogger, accountName st
 
 func deleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) error {
 	reqLogger.Info("Deleting user %v in aqua", accountName)
+
+	aquaAuth := utils.GetAquaAuth()
+	jwt := aquaAuth.GetJWT()
+
 	reqUrl := os.Getenv("AQUA_URL") + "/users/" + accountName
 	client := &http.Client{}
 	req, _ := http.NewRequest("DELETE", reqUrl, nil)
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("AQUA_SECRET"))
+	req.Header.Set("Authorization", "Bearer "+jwt)
 	req.Header.Set("Accept", "application/json")
 
 	res, err := client.Do(req)
@@ -367,10 +376,13 @@ func createAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 	var roleBuffer bytes.Buffer
 	ut.Execute(&roleBuffer, role)
 
+	aquaAuth := utils.GetAquaAuth()
+	jwt := aquaAuth.GetJWT()
+
 	reqUrl := os.Getenv("AQUA_URL") + "/access_management/roles"
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", reqUrl, &roleBuffer)
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("AQUA_SECRET"))
+	req.Header.Set("Authorization", "Bearer "+jwt)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
@@ -417,10 +429,13 @@ func createAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope Applic
 	var appScopeBuffer bytes.Buffer
 	ut.Execute(&appScopeBuffer, appScope)
 
+	aquaAuth := utils.GetAquaAuth()
+	jwt := aquaAuth.GetJWT()
+
 	reqUrl := os.Getenv("AQUA_URL") + "/access_management/scopes"
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", reqUrl, &appScopeBuffer)
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("AQUA_SECRET"))
+	req.Header.Set("Authorization", "Bearer "+jwt)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
@@ -467,10 +482,13 @@ func createAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 	var userBuffer bytes.Buffer
 	ut.Execute(&userBuffer, user)
 
+	aquaAuth := utils.GetAquaAuth()
+	jwt := aquaAuth.GetJWT()
+
 	reqUrl := os.Getenv("AQUA_URL") + "/users/"
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", reqUrl, &userBuffer)
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("AQUA_SECRET"))
+	req.Header.Set("Authorization", "Bearer "+jwt)
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := client.Do(req)
