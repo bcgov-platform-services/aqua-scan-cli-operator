@@ -1,0 +1,34 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+  resources:
+  - aquascanneraccounts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+  resources:
+  - aquascanneraccounts/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+  resources:
+  - aquascanneraccounts/status
+  verbs:
+  - get
+  - patch
+  - update
