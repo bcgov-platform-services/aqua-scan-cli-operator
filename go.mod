@@ -3,6 +3,7 @@ module github.com/bcgov-platform-services/aqua-scan-cli-operator
 go 1.16
 
 require (
+	github.com/kataras/jwt v0.1.2 // indirect
 	github.com/m1/go-generate-password v0.1.1 // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
