@@ -80,18 +80,20 @@ type aquaResponseJson struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// - finish create/delete func for:
-//    - applicationscope
-//    - role
-// - finish finalizer deletion of all aqua objects
-// - finish error handling for main reconcilliation
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.9.2/pkg/reconcile
+
+func recoverReconciliation() {
+	if r := recover(); r != nil {
+		ctrl.Log.Info("Recovered from a panic attack %v", r)
+	}
+}
+
 func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
-
+	// when it panics from not logging into aqua
+	defer recoverReconciliation()
 	// Fetch the aqua scanner account instance
 	aquaScannerAccount := &mamoadevopsgovbccav1alpha1.AquaScannerAccount{}
 	err := r.Get(ctx, req.NamespacedName, aquaScannerAccount)
@@ -121,7 +123,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			return ctrl.Result{}, updateErr
 		}
 
-		return ctrl.Result{Requeue: false}, err
+		return ctrl.Result{}, err
 	}
 
 	// Check if the AquaScannerAccount instance is marked to be deleted, which is
