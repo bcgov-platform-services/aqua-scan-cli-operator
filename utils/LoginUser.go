@@ -18,23 +18,23 @@ type AquaAuth struct {
 }
 
 type LoginReqBody struct {
-	Id       string `json: "id"`
-	Password string `json: "password"`
+	Id       string `json:"id"`
+	Password string `json:"password"`
 }
 
 type LoginRes struct {
-	Token string `json: "token"`
+	Token string `json:"token"`
 }
 
 type JwtPayload struct {
-	Exp int64 `json: "exp"`
+	Exp int64 `json:"exp"`
 }
 
 func (aa *AquaAuth) GetJWT() string {
 	now := time.Now().Unix()
 
 	if now > aa.exp {
-		// login again
+		aa.Login()
 	}
 
 	return aa.jwt
