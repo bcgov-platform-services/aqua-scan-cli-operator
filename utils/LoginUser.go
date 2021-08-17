@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/kataras/jwt"
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 type AquaAuth struct {
@@ -34,13 +35,17 @@ func (aa *AquaAuth) GetJWT() string {
 	now := time.Now().Unix()
 
 	if now > aa.exp {
-		aa.Login()
+		err := aa.Login()
+
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return aa.jwt
 }
 
-func (aa *AquaAuth) Login() {
+func (aa *AquaAuth) Login() error {
 	fmt.Println("Logging into Aqua")
 
 	aquaUrl := os.Getenv("AQUA_URL")
@@ -59,13 +64,17 @@ func (aa *AquaAuth) Login() {
 	res, err := client.Do(req)
 
 	if err != nil {
-		// reqLogger.Error(err, "Failed request to POST to /api/v1/login in aqua")
-		// return err
+		return errors.NewInternalError(err)
 	}
+
 	defer res.Body.Close()
 
 	var jsonData LoginRes
-	body, _ := ioutil.ReadAll(res.Body)
+	body, jsonErr := ioutil.ReadAll(res.Body)
+
+	if jsonErr != nil {
+		return jsonErr
+	}
 
 	json.Unmarshal(body, &jsonData)
 
@@ -73,12 +82,19 @@ func (aa *AquaAuth) Login() {
 		aa.jwt = jsonData.Token
 
 		exp := JwtPayload{}
-		token, _ := jwt.Decode([]byte(jsonData.Token))
+		token, decodeErr := jwt.Decode([]byte(jsonData.Token))
+
+		if decodeErr != nil {
+			return decodeErr
+		}
 
 		json.Unmarshal(token.Payload, &exp)
 
 		aa.exp = exp.Exp
+		return nil
 	} else {
 		// failure operator needs to quit
+		e := fmt.Errorf("failed to login to Aqua, returned status code was %v", res.StatusCode)
+		return e
 	}
 }
