@@ -187,7 +187,8 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		namespaceErr := r.Get(ctx, req.NamespacedName, &namespace)
 
 		if namespaceErr != nil {
-
+			ctrl.Log.Error(namespaceErr, "Failed to find Namespace CRD is installed in")
+			return ctrl.Result{}, namespaceErr
 		}
 
 		contactAnnotation := namespace.Annotations["contacts"]
@@ -210,13 +211,15 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		applicationScopeErr := createAquaApplicationScope(ctrl.Log, applicationScope)
 
 		if applicationScopeErr != nil {
-
+			ctrl.Log.Error(applicationScopeErr, "Failed to create application scope")
+			return ctrl.Result{}, applicationScopeErr
 		}
 
 		roleErr := createAquaRole(ctrl.Log, role)
 
 		if roleErr != nil {
-
+			ctrl.Log.Error(roleErr, "Failed to create role")
+			return ctrl.Result{}, roleErr
 		}
 
 		config := generator.Config{
@@ -241,12 +244,14 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		userErr := createAquaAccount(ctrl.Log, user)
 
 		if userErr != nil {
-
+			ctrl.Log.Error(userErr, "Failed to create user")
+			return ctrl.Result{}, userErr
 		}
 
 		// set status to Complete
 		aquaScannerAccount.Status.CurrentState = "Failure"
-
+		aquaScannerAccount.Status.AccountName = user.Name
+		aquaScannerAccount.Status.AccountSecret = user.Password
 		aquaScannerAccount.Status.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
 		updateErr = r.Status().Update(ctx, aquaScannerAccount)
 
@@ -256,12 +261,6 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}
 
 	}
-	// your logic here
-	// possible states are Running New Complete Failure
-	// if the status of the aqua scanner account is !Complete or !Failure or !Running
-	// update state to Running
-	// create the aqua scanner user and embed credentials in status
-	// change status to complete or failure
 	return ctrl.Result{}, nil
 }
 
@@ -279,9 +278,18 @@ func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log
 	if delAcctErr != nil {
 		return delAcctErr
 	}
+
+	delAppScopeErr := deleteAquaApplicationScope(ctrl.Log, aquaScannerName)
+
+	if delAppScopeErr != nil {
+		return delAppScopeErr
+	}
 	// delete application scope
 	// delete role
-
+	delRoleErr := deleteAquaRole(ctrl.Log, aquaScannerName)
+	if delRoleErr != nil {
+		return delRoleErr
+	}
 	// needs to do before the CR can be deleted. Examples
 	// of finalizers include performing backups and deleting
 	// resources that are not owned by this CR, like a PVC.
@@ -331,7 +339,7 @@ func deleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) erro
 	aquaAuth := utils.GetAquaAuth()
 	jwt := aquaAuth.GetJWT()
 
-	reqUrl := os.Getenv("AQUA_URL") + "/users/" + accountName
+	reqUrl := os.Getenv("AQUA_URL") + "/api/v1/users/" + accountName
 	client := &http.Client{}
 	req, _ := http.NewRequest("DELETE", reqUrl, nil)
 	req.Header.Set("Authorization", "Bearer "+jwt)
@@ -340,21 +348,79 @@ func deleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) erro
 	res, err := client.Do(req)
 
 	if err != nil {
-		reqLogger.Error(err, "Failed request to DELETE %v from aqua", accountName)
+		reqLogger.Error(err, "Failed request to DELETE /api/v1/users %v from aqua", accountName)
 		return err
 	}
 
 	if res.StatusCode != 204 {
-		reqLogger.Error(err, "Failed to DELETE %v from aqua", accountName)
+		reqLogger.Error(err, "Failed to DELETE /api/v1/users %v from aqua", accountName)
 		return errors.NewBadRequest("Failed to DELETE user from aqua")
 	}
 	reqLogger.Info("User %v deleted", accountName)
 	return nil
 }
 
-// TODO
-// func deleteAquaApplicationScope() error {}
-// func deleteAquaRole() error {}
+func deleteAquaApplicationScope(reqLogger *log.DelegatingLogger, applicationScope string) error {
+	reqLogger.Info("Deleting applicationScope %v in aqua", applicationScope)
+
+	aquaAuth := utils.GetAquaAuth()
+	jwt := aquaAuth.GetJWT()
+	reqPayload, jsonErr := json.Marshal([]string{applicationScope})
+
+	if jsonErr != nil {
+		reqLogger.Error(jsonErr, "Failed to marshal json %v", []string{applicationScope})
+		return jsonErr
+	}
+
+	reqUrl := os.Getenv("AQUA_URL") + "/api/v2/access_management/scopes/delete"
+	client := &http.Client{}
+
+	req, _ := http.NewRequest("POST", reqUrl, bytes.NewBuffer(reqPayload))
+	req.Header.Set("Authorization", "Bearer "+jwt)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		reqLogger.Error(err, "Failed request to POST to /api/v2/access_management/scopes/delete in aqua")
+		return err
+	}
+
+	if res.StatusCode != 204 {
+		e := errors.NewBadRequest(fmt.Sprintf("Error: Could not delete application scope, the response status from aqua was %v", res.StatusCode))
+		return e
+	}
+	return nil
+}
+
+func deleteAquaRole(reqLogger *log.DelegatingLogger, role string) error {
+	reqLogger.Info("Deleting role %v in aqua", role)
+
+	aquaAuth := utils.GetAquaAuth()
+	jwt := aquaAuth.GetJWT()
+
+	reqUrl := os.Getenv("AQUA_URL") + "/api/v2/access_management/roles/" + role
+	client := &http.Client{}
+
+	req, _ := http.NewRequest("DELETE", reqUrl, nil)
+	req.Header.Set("Authorization", "Bearer "+jwt)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		reqLogger.Error(err, "Failed request to DELETE to /api/v2/access_management/roles/ in aqua")
+		return err
+	}
+
+	if res.StatusCode != 204 {
+		e := errors.NewBadRequest(fmt.Sprintf("Error: Could not delete role, the response status from aqua was %v", res.StatusCode))
+		return e
+	}
+	return nil
+}
 
 func createAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 	reqLogger.Info("Creating Role %v in aqua", role.Name)
@@ -379,7 +445,7 @@ func createAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 	aquaAuth := utils.GetAquaAuth()
 	jwt := aquaAuth.GetJWT()
 
-	reqUrl := os.Getenv("AQUA_URL") + "/access_management/roles"
+	reqUrl := os.Getenv("AQUA_URL") + " /api/v2/access_management/roles"
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", reqUrl, &roleBuffer)
 	req.Header.Set("Authorization", "Bearer "+jwt)
@@ -389,7 +455,7 @@ func createAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 	res, err := client.Do(req)
 
 	if err != nil {
-		reqLogger.Error(err, "Failed request to POST to /access_management/roles in aqua")
+		reqLogger.Error(err, "Failed request to POST to  /api/v2/access_management/roles in aqua")
 		return err
 	}
 	defer res.Body.Close()
@@ -432,7 +498,7 @@ func createAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope Applic
 	aquaAuth := utils.GetAquaAuth()
 	jwt := aquaAuth.GetJWT()
 
-	reqUrl := os.Getenv("AQUA_URL") + "/access_management/scopes"
+	reqUrl := os.Getenv("AQUA_URL") + " /api/v2/access_management/scopes"
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", reqUrl, &appScopeBuffer)
 	req.Header.Set("Authorization", "Bearer "+jwt)
@@ -442,7 +508,7 @@ func createAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope Applic
 	res, err := client.Do(req)
 
 	if err != nil {
-		reqLogger.Error(err, "Failed request to POST to /access_management/scopes in aqua")
+		reqLogger.Error(err, "Failed request to POST to  /api/v2/access_management/scopes in aqua")
 		return err
 	}
 	defer res.Body.Close()
@@ -485,7 +551,7 @@ func createAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 	aquaAuth := utils.GetAquaAuth()
 	jwt := aquaAuth.GetJWT()
 
-	reqUrl := os.Getenv("AQUA_URL") + "/users/"
+	reqUrl := os.Getenv("AQUA_URL") + "/api/v1/users/"
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", reqUrl, &userBuffer)
 	req.Header.Set("Authorization", "Bearer "+jwt)
@@ -494,7 +560,7 @@ func createAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 	res, err := client.Do(req)
 
 	if err != nil {
-		reqLogger.Error(err, "Failed request to POST %v from aqua", user.Name)
+		reqLogger.Error(err, "Failed request to POST /api/v1/ %v from aqua", user.Name)
 		return err
 	}
 
