@@ -18,12 +18,16 @@ type AquaAuth struct {
 }
 
 type LoginReqBody struct {
-	id       string
-	password string
+	Id       string `json: "id"`
+	Password string `json: "password"`
 }
 
 type LoginRes struct {
-	token string
+	Token string `json: "token"`
+}
+
+type JwtPayload struct {
+	Exp int64 `json: "exp"`
 }
 
 func (aa *AquaAuth) GetJWT() string {
@@ -42,9 +46,9 @@ func (aa *AquaAuth) Login() {
 	aquaUrl := os.Getenv("AQUA_URL")
 	aquaUsername := os.Getenv("AQUA_USER")
 	aquaPassword := os.Getenv("AQUA_PASSWORD")
-
-	reqBody := LoginReqBody{id: aquaUsername, password: aquaPassword}
-	buffer, err := json.Marshal(reqBody)
+	fmt.Println(aquaPassword, aquaUsername, aquaUrl)
+	reqBody := LoginReqBody{Id: aquaUsername, Password: aquaPassword}
+	buffer, _ := json.Marshal(reqBody)
 	reqUrl := aquaUrl + "/api/v1/login"
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", reqUrl, bytes.NewBuffer(buffer))
@@ -66,9 +70,15 @@ func (aa *AquaAuth) Login() {
 	json.Unmarshal(body, &jsonData)
 
 	if res.StatusCode == 200 {
-		aa.jwt = jsonData.token
-		token, err := jwt.Decode([]byte(jsonData.token))
-	} else {
+		aa.jwt = jsonData.Token
 
+		exp := JwtPayload{}
+		token, _ := jwt.Decode([]byte(jsonData.Token))
+
+		json.Unmarshal(token.Payload, &exp)
+
+		aa.exp = exp.Exp
+	} else {
+		// failure operator needs to quit
 	}
 }
