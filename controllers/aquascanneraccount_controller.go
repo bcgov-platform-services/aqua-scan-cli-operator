@@ -292,7 +292,6 @@ func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log
 func doesAquaAccountAlreadyExist(reqLogger *log.DelegatingLogger, accountName string) (bool, error) {
 
 	aquaAuth := utils.GetAquaAuth()
-
 	jwt := aquaAuth.GetJWT()
 
 	reqLogger.Info("Checking if %v was created previously in aqua", accountName)
