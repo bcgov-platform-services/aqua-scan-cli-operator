@@ -35,6 +35,7 @@ func (aa *AquaAuth) GetJWT() string {
 	now := time.Now().Unix()
 
 	if now > aa.exp {
+		fmt.Println("The previous token is expired. Relogging into Aqua.")
 		err := aa.Login()
 
 		if err != nil {
