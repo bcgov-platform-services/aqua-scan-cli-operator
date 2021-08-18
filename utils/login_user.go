@@ -35,18 +35,16 @@ type JwtPayload struct {
 var lock = &sync.Mutex{}
 var aquaAuth *AquaAuth
 
-func (aa *AquaAuth) GetJWT() string {
+func (aa *AquaAuth) GetJWT() (string, error) {
 	now := time.Now().Unix()
 
 	if aa.exp == 0 || now > aa.exp {
 		err := aa.Login()
 
-		if err != nil {
-			panic(err)
-		}
+		return "", err
 	}
 
-	return aa.jwt
+	return aa.jwt, nil
 }
 
 func (aa *AquaAuth) Login() error {
@@ -104,13 +102,10 @@ func (aa *AquaAuth) Login() error {
 }
 
 func GetAquaAuth() *AquaAuth {
+	lock.Lock()
+	defer lock.Unlock()
 	if aquaAuth == nil {
-		lock.Lock()
-		defer lock.Unlock()
-		if aquaAuth == nil {
-
-			aquaAuth = &AquaAuth{}
-		}
+		aquaAuth = &AquaAuth{}
 	}
 	return aquaAuth
 }
