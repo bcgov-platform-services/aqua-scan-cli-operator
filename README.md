@@ -10,3 +10,4 @@ The operator requires the following variables in the runtime:
 1. `AQUA_URL string`: the base url to the aqua instance
 2. `AQUA_USER string`: the aqua service account username that is needed to interact with the aqua api
 3. `AQUA_PASSWORD string`: the credentials for the service account
+

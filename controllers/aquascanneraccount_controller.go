@@ -302,7 +302,11 @@ func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log
 func doesAquaAccountAlreadyExist(reqLogger *log.DelegatingLogger, accountName string) (bool, error) {
 
 	aquaAuth := utils.GetAquaAuth()
-	jwt := aquaAuth.GetJWT()
+	jwt, jwtErr := aquaAuth.GetJWT()
+	if jwtErr != nil {
+		reqLogger.Error(jwtErr, "Failed to login to Aqua")
+		return false, jwtErr
+	}
 
 	reqLogger.Info("Checking if %v was created previously in aqua", accountName)
 	reqUrl := os.Getenv("AQUA_URL") + "/users/" + accountName
@@ -338,7 +342,11 @@ func deleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) erro
 	reqLogger.Info("Deleting user %v in aqua", accountName)
 
 	aquaAuth := utils.GetAquaAuth()
-	jwt := aquaAuth.GetJWT()
+	jwt, jwtErr := aquaAuth.GetJWT()
+	if jwtErr != nil {
+		reqLogger.Error(jwtErr, "Failed to login to Aqua")
+		return jwtErr
+	}
 
 	reqUrl := os.Getenv("AQUA_URL") + "/api/v1/users/" + accountName
 	client := &http.Client{}
@@ -365,7 +373,12 @@ func deleteAquaApplicationScope(reqLogger *log.DelegatingLogger, applicationScop
 	reqLogger.Info("Deleting applicationScope %v in aqua", applicationScope)
 
 	aquaAuth := utils.GetAquaAuth()
-	jwt := aquaAuth.GetJWT()
+	jwt, jwtErr := aquaAuth.GetJWT()
+	if jwtErr != nil {
+		reqLogger.Error(jwtErr, "Failed to login to Aqua")
+		return jwtErr
+	}
+
 	reqPayload, jsonErr := json.Marshal([]string{applicationScope})
 
 	if jsonErr != nil {
@@ -399,7 +412,11 @@ func deleteAquaRole(reqLogger *log.DelegatingLogger, role string) error {
 	reqLogger.Info("Deleting role %v in aqua", role)
 
 	aquaAuth := utils.GetAquaAuth()
-	jwt := aquaAuth.GetJWT()
+	jwt, jwtErr := aquaAuth.GetJWT()
+	if jwtErr != nil {
+		reqLogger.Error(jwtErr, "Failed to login to Aqua")
+		return jwtErr
+	}
 
 	reqUrl := os.Getenv("AQUA_URL") + "/api/v2/access_management/roles/" + role
 	client := &http.Client{}
@@ -426,6 +443,13 @@ func deleteAquaRole(reqLogger *log.DelegatingLogger, role string) error {
 func createAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 	reqLogger.Info("Creating Role %v in aqua", role.Name)
 
+	aquaAuth := utils.GetAquaAuth()
+	jwt, jwtErr := aquaAuth.GetJWT()
+	if jwtErr != nil {
+		reqLogger.Error(jwtErr, "Failed to login to Aqua")
+		return jwtErr
+	}
+
 	b, fileErr := ioutil.ReadFile("../templates/Role.json.tmpl")
 
 	if fileErr != nil {
@@ -442,9 +466,6 @@ func createAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 
 	var roleBuffer bytes.Buffer
 	ut.Execute(&roleBuffer, role)
-
-	aquaAuth := utils.GetAquaAuth()
-	jwt := aquaAuth.GetJWT()
 
 	reqUrl := os.Getenv("AQUA_URL") + " /api/v2/access_management/roles"
 	client := &http.Client{}
@@ -478,6 +499,12 @@ func createAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 
 func createAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope ApplicationScope) error {
 	reqLogger.Info("Creating applicationScope %v-* in aqua", appScope.NamespacePrefix)
+	aquaAuth := utils.GetAquaAuth()
+	jwt, jwtErr := aquaAuth.GetJWT()
+	if jwtErr != nil {
+		reqLogger.Error(jwtErr, "Failed to login to Aqua")
+		return jwtErr
+	}
 
 	b, fileErr := ioutil.ReadFile("../templates/ApplicationScope.json.tmpl")
 
@@ -495,9 +522,6 @@ func createAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope Applic
 
 	var appScopeBuffer bytes.Buffer
 	ut.Execute(&appScopeBuffer, appScope)
-
-	aquaAuth := utils.GetAquaAuth()
-	jwt := aquaAuth.GetJWT()
 
 	reqUrl := os.Getenv("AQUA_URL") + " /api/v2/access_management/scopes"
 	client := &http.Client{}
@@ -532,6 +556,13 @@ func createAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope Applic
 func createAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 	reqLogger.Info("Creating user %v in aqua", user.Name)
 
+	aquaAuth := utils.GetAquaAuth()
+	jwt, jwtErr := aquaAuth.GetJWT()
+	if jwtErr != nil {
+		reqLogger.Error(jwtErr, "Failed to login to Aqua")
+		return jwtErr
+	}
+
 	b, fileErr := ioutil.ReadFile("../templates/User.json.tmpl")
 
 	if fileErr != nil {
@@ -548,9 +579,6 @@ func createAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 
 	var userBuffer bytes.Buffer
 	ut.Execute(&userBuffer, user)
-
-	aquaAuth := utils.GetAquaAuth()
-	jwt := aquaAuth.GetJWT()
 
 	reqUrl := os.Getenv("AQUA_URL") + "/api/v1/users/"
 	client := &http.Client{}

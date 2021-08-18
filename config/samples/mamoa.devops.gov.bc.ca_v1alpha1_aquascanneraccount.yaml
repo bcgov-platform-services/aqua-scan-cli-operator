@@ -2,6 +2,5 @@ apiVersion: mamoa.devops.gov.bc.ca.devops.gov.bc.ca/v1alpha1
 kind: AquaScannerAccount
 metadata:
   name: aquascanneraccount-sample
-spec:
-  # Add fields here
-  foo: bar
+  namespace: patrick-tools
+spec: {}
