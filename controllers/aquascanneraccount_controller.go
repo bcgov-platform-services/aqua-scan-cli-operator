@@ -84,16 +84,9 @@ type aquaResponseJson struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.9.2/pkg/reconcile
 
-func recoverReconciliation() {
-	if r := recover(); r != nil {
-		ctrl.Log.Info("Recovered from a panic attack %v", r)
-	}
-}
-
 func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
-	// when it panics from not logging into aqua
-	defer recoverReconciliation()
+
 	// Fetch the aqua scanner account instance
 	aquaScannerAccount := &mamoadevopsgovbccav1alpha1.AquaScannerAccount{}
 	err := r.Get(ctx, req.NamespacedName, aquaScannerAccount)
@@ -120,10 +113,10 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		if updateErr != nil {
 			ctrl.Log.Error(updateErr, "Failed to update aquaScannerAccount status")
-			return ctrl.Result{}, updateErr
+			return ctrl.Result{Requeue: true}, updateErr
 		}
 
-		return ctrl.Result{}, err
+		return ctrl.Result{Requeue: true}, err
 	}
 
 	// Check if the AquaScannerAccount instance is marked to be deleted, which is
@@ -135,7 +128,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			// finalization logic fails, don't remove the finalizer so
 			// that we can retry during the next reconciliation.
 			if err := r.finalizeAquaScannerAccount(ctrl.Log, aquaScannerAccount, aquaScannerAccountName); err != nil {
-				return ctrl.Result{}, err
+				return ctrl.Result{Requeue: true}, err
 			}
 
 			// Remove aquaScannerAccountFinalizer. Once all finalizers have been
@@ -144,7 +137,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			err := r.Update(ctx, aquaScannerAccount)
 			if err != nil {
 				ctrl.Log.Error(err, "Failed to remove aquaScannerAccount Finalizer")
-				return ctrl.Result{}, err
+				return ctrl.Result{Requeue: true}, err
 			}
 		}
 		return ctrl.Result{}, nil
@@ -156,7 +149,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		err = r.Update(ctx, aquaScannerAccount)
 		if err != nil {
 			ctrl.Log.Error(err, "Failed to add aquaScannerAccount Finalizer")
-			return ctrl.Result{}, err
+			return ctrl.Result{Requeue: true}, err
 		}
 	}
 
@@ -166,21 +159,21 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		updateErr := r.Status().Update(ctx, aquaScannerAccount)
 		if updateErr != nil {
 			ctrl.Log.Error(err, "Failed to update aquaScannerAccount Status")
-			return ctrl.Result{}, err
+			return ctrl.Result{Requeue: true}, err
 		}
 
 		// if there are existing accounts with the same name in aqua they must be deleted first
 		accountExists, aquaResErr := doesAquaAccountAlreadyExist(ctrl.Log, aquaScannerAccountName)
 
 		if aquaResErr != nil {
-			return ctrl.Result{}, aquaResErr
+			return ctrl.Result{Requeue: true}, aquaResErr
 		}
 
 		if accountExists {
 			// only need to delete account becuase we are regenerating a password
 			delErr := deleteAquaAccount(ctrl.Log, aquaScannerAccountName)
 			if delErr != nil {
-				return ctrl.Result{}, delErr
+				return ctrl.Result{Requeue: true}, delErr
 			}
 		}
 		namespacePrefix := strings.TrimSuffix(req.Namespace, "-test")
@@ -190,7 +183,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		if namespaceErr != nil {
 			ctrl.Log.Error(namespaceErr, "Failed to find Namespace CRD is installed in")
-			return ctrl.Result{}, namespaceErr
+			return ctrl.Result{Requeue: true}, namespaceErr
 		}
 
 		contactAnnotation := namespace.Annotations["contacts"]
@@ -214,14 +207,14 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		if applicationScopeErr != nil {
 			ctrl.Log.Error(applicationScopeErr, "Failed to create application scope")
-			return ctrl.Result{}, applicationScopeErr
+			return ctrl.Result{Requeue: true}, applicationScopeErr
 		}
 
 		roleErr := createAquaRole(ctrl.Log, role)
 
 		if roleErr != nil {
 			ctrl.Log.Error(roleErr, "Failed to create role")
-			return ctrl.Result{}, roleErr
+			return ctrl.Result{Requeue: true}, roleErr
 		}
 
 		config := generator.Config{
@@ -247,7 +240,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		if userErr != nil {
 			ctrl.Log.Error(userErr, "Failed to create user")
-			return ctrl.Result{}, userErr
+			return ctrl.Result{Requeue: true}, userErr
 		}
 
 		// set status to Complete
@@ -259,7 +252,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		if updateErr != nil {
 			ctrl.Log.Error(updateErr, "Failed to update aquaScannerAccount status")
-			return ctrl.Result{}, updateErr
+			return ctrl.Result{Requeue: true}, updateErr
 		}
 
 	}
