@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,7 +31,6 @@ import (
 
 	mamoadevopsgovbccav1alpha1 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha1"
 	aqua "github.com/bcgov-platform-services/aqua-scan-cli-operator/aqua_helpers"
-	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
 	"github.com/m1/go-generate-password/generator"
 )
 
@@ -59,6 +57,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 	// Fetch the aqua scanner account instance
 	aquaScannerAccount := &mamoadevopsgovbccav1alpha1.AquaScannerAccount{}
+
 	err := r.Get(ctx, req.NamespacedName, aquaScannerAccount)
 	aquaScannerAccountName := "ScannerCLI_" + req.Namespace
 
@@ -134,22 +133,10 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		namespacePrefix := strings.TrimSuffix(req.Namespace, "-test")
 
-		var namespace corev1.Namespace
-		namespaceErr := r.Get(ctx, req.NamespacedName, &namespace)
-
-		if namespaceErr != nil {
-			ctrl.Log.Error(namespaceErr, "Failed to find Namespace CRD is installed in")
-			return ctrl.Result{Requeue: true}, namespaceErr
-		}
-
-		contactAnnotation := namespace.Annotations["contacts"]
-
-		technicalLeadEmail := utils.GetTechnicalContactFromAnnotation(contactAnnotation)
-
 		applicationScope := aqua.ApplicationScope{
 			Name:               aquaScannerAccountName,
 			Description:        "Scanner scoped to " + namespacePrefix + "-* and DockerHub only.",
-			TechnicalLeadEmail: technicalLeadEmail,
+			TechnicalLeadEmail: "",
 			NamespacePrefix:    namespacePrefix,
 		}
 
@@ -197,7 +184,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		} else {
 			config := generator.Config{
 				Length:                     16,
-				IncludeSymbols:             false,
+				IncludeSymbols:             true,
 				IncludeNumbers:             true,
 				IncludeLowercaseLetters:    true,
 				IncludeUppercaseLetters:    true,
@@ -265,25 +252,20 @@ func (r *AquaScannerAccountReconciler) SetupWithManager(mgr ctrl.Manager) error 
 func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log.DelegatingLogger, m *mamoadevopsgovbccav1alpha1.AquaScannerAccount, aquaScannerName string) error {
 
 	delAcctErr := aqua.DeleteAquaAccount(ctrl.Log, aquaScannerName)
-
 	if delAcctErr != nil {
 		return delAcctErr
 	}
 
-	delAppScopeErr := aqua.DeleteAquaApplicationScope(ctrl.Log, aquaScannerName)
-
-	if delAppScopeErr != nil {
-		return delAppScopeErr
-	}
-	// delete application scope
-	// delete role
 	delRoleErr := aqua.DeleteAquaRole(ctrl.Log, aquaScannerName)
 	if delRoleErr != nil {
 		return delRoleErr
 	}
-	// needs to do before the CR can be deleted. Examples
-	// of finalizers include performing backups and deleting
-	// resources that are not owned by this CR, like a PVC.
+
+	delAppScopeErr := aqua.DeleteAquaApplicationScope(ctrl.Log, aquaScannerName)
+	if delAppScopeErr != nil {
+		return delAppScopeErr
+	}
+
 	reqLogger.Info("Successfully finalized AquaScannerAccount")
 	return nil
 }

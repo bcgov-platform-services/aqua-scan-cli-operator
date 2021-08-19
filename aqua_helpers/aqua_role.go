@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
@@ -22,7 +23,7 @@ type Role struct {
 }
 
 func DeleteAquaRole(reqLogger *log.DelegatingLogger, role string) error {
-	reqLogger.Info("Deleting role %v in aqua", role)
+	reqLogger.Info("Deleting role %v in aqua", "role", role)
 
 	aquaAuth := utils.GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
@@ -54,7 +55,7 @@ func DeleteAquaRole(reqLogger *log.DelegatingLogger, role string) error {
 }
 
 func CreateAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
-	reqLogger.Info("Creating Role %v in aqua", role.Name)
+	reqLogger.Info("Creating Role %v in aqua", "role", role.Name)
 
 	aquaAuth := utils.GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
@@ -62,8 +63,10 @@ func CreateAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")
 		return jwtErr
 	}
+	wd, _ := os.Getwd()
+	path := filepath.Join(wd, "./templates/Role.json.tmpl")
 
-	b, fileErr := ioutil.ReadFile("../templates/Role.json.tmpl")
+	b, fileErr := ioutil.ReadFile(path)
 
 	if fileErr != nil {
 		reqLogger.Error(fileErr, "Failed to read template file Role.json.tmpl")
@@ -80,9 +83,15 @@ func CreateAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 	var roleBuffer bytes.Buffer
 	ut.Execute(&roleBuffer, role)
 
-	reqUrl := os.Getenv("AQUA_URL") + " /api/v2/access_management/roles"
+	reqUrl := os.Getenv("AQUA_URL") + "/api/v2/access_management/roles"
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", reqUrl, &roleBuffer)
+	req, clientErr := http.NewRequest("POST", reqUrl, &roleBuffer)
+
+	if clientErr != nil {
+		reqLogger.Error(clientErr, "unable to create client")
+		return clientErr
+	}
+
 	req.Header.Set("Authorization", "Bearer "+jwt)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
