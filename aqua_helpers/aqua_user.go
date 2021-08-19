@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
@@ -25,7 +26,7 @@ type aquaResponseJson struct {
 }
 
 func DeleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) error {
-	reqLogger.Info("Deleting user %v in aqua", accountName)
+	reqLogger.Info("Deleting user %v in aqua", "user", accountName)
 
 	aquaAuth := utils.GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
@@ -46,17 +47,22 @@ func DeleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) erro
 		reqLogger.Error(err, "Failed request to DELETE /api/v1/users %v from aqua", accountName)
 		return err
 	}
+	var jsonData aquaResponseJson
+	body, _ := ioutil.ReadAll(res.Body)
 
-	if res.StatusCode != 204 {
-		reqLogger.Error(err, "Failed to DELETE /api/v1/users %v from aqua", accountName)
-		return errors.NewBadRequest("Failed to DELETE user from aqua")
+	json.Unmarshal(body, &jsonData)
+
+	if res.StatusCode == 204 || res.StatusCode == 400 && jsonData.Message == "No such user" {
+		reqLogger.Info("User %v deleted", "user", accountName)
+		return nil
 	}
-	reqLogger.Info("User %v deleted", accountName)
-	return nil
+
+	reqLogger.Error(err, "Failed to DELETE /api/v1/users %v from aqua", "user", accountName, "status", res.Status)
+	return errors.NewBadRequest("Failed to DELETE user from aqua")
 }
 
 func CreateAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
-	reqLogger.Info("Creating user %v in aqua", user.Name)
+	reqLogger.Info("Creating user %v in aqua", "user", user.Name)
 
 	aquaAuth := utils.GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
@@ -64,8 +70,9 @@ func CreateAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")
 		return jwtErr
 	}
-
-	b, fileErr := ioutil.ReadFile("../templates/User.json.tmpl")
+	wd, _ := os.Getwd()
+	path := filepath.Join(wd, "templates/User.json.tmpl")
+	b, fileErr := ioutil.ReadFile(path)
 
 	if fileErr != nil {
 		reqLogger.Error(fileErr, "Failed to read template file User.json.tmpl")
@@ -82,9 +89,15 @@ func CreateAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 	var userBuffer bytes.Buffer
 	ut.Execute(&userBuffer, user)
 
-	reqUrl := os.Getenv("AQUA_URL") + "/api/v1/users/"
+	reqUrl := os.Getenv("AQUA_URL") + "/api/v1/users"
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", reqUrl, &userBuffer)
+	req, clientErr := http.NewRequest("POST", reqUrl, &userBuffer)
+
+	if clientErr != nil {
+		reqLogger.Error(clientErr, "unable to create client")
+		return clientErr
+	}
+
 	req.Header.Set("Authorization", "Bearer "+jwt)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -101,15 +114,15 @@ func CreateAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 	json.Unmarshal(body, &jsonData)
 
 	if res.StatusCode == 204 {
-		reqLogger.Info("User %v created in aqua", user.Name)
+		reqLogger.Info("User %v created in aqua", "user", user.Name)
 		return nil
 	}
 
 	if res.StatusCode == 400 && strings.Contains(jsonData.Message, "User with username "+user.Name+" already exists") {
-		reqLogger.Info("User %v already exists in aqua", user.Name)
+		reqLogger.Info("User %v already exists in aqua", "user", user.Name)
 		return nil
 	}
 
-	reqLogger.Error(err, "Failed to POST %v from aqua. Status code is %v", user.Name, res.StatusCode)
+	reqLogger.Error(err, "Failed to POST %v from aqua. Status code is %v", "name", user.Name, "statusCode", res.StatusCode)
 	return errors.NewBadRequest("Failed to POST user from aqua")
 }

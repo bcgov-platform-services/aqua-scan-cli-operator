@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
@@ -23,7 +24,7 @@ type ApplicationScope struct {
 }
 
 func DeleteAquaApplicationScope(reqLogger *log.DelegatingLogger, applicationScope string) error {
-	reqLogger.Info("Deleting applicationScope %v in aqua", applicationScope)
+	reqLogger.Info("Deleting applicationScope %v in aqua", "applicationScope", applicationScope)
 
 	aquaAuth := utils.GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
@@ -62,7 +63,9 @@ func DeleteAquaApplicationScope(reqLogger *log.DelegatingLogger, applicationScop
 }
 
 func CreateAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope ApplicationScope) error {
-	reqLogger.Info("Creating applicationScope %v-* in aqua", appScope.NamespacePrefix)
+	wd, _ := os.Getwd()
+
+	reqLogger.Info("Creating applicationScope %v-* in aqua", "Namespace Prefix", appScope.NamespacePrefix)
 	aquaAuth := utils.GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
 	if jwtErr != nil {
@@ -70,7 +73,9 @@ func CreateAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope Applic
 		return jwtErr
 	}
 
-	b, fileErr := ioutil.ReadFile("../templates/ApplicationScope.json.tmpl")
+	path := filepath.Join(wd, "./templates/ApplicationScope.json.tmpl")
+
+	b, fileErr := ioutil.ReadFile(path)
 
 	if fileErr != nil {
 		reqLogger.Error(fileErr, "Failed to read template file ApplicationScope.json.tmpl")
@@ -87,9 +92,15 @@ func CreateAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope Applic
 	var appScopeBuffer bytes.Buffer
 	ut.Execute(&appScopeBuffer, appScope)
 
-	reqUrl := os.Getenv("AQUA_URL") + " /api/v2/access_management/scopes"
+	reqUrl := os.Getenv("AQUA_URL") + "/api/v2/access_management/scopes"
 	client := &http.Client{}
-	req, _ := http.NewRequest("POST", reqUrl, &appScopeBuffer)
+	req, clientErr := http.NewRequest("POST", reqUrl, bytes.NewBuffer(appScopeBuffer.Bytes()))
+
+	if clientErr != nil {
+		reqLogger.Error(clientErr, "unable to create client")
+		return clientErr
+	}
+
 	req.Header.Set("Authorization", "Bearer "+jwt)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")

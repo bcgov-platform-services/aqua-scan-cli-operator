@@ -41,19 +41,21 @@ func (aa *AquaAuth) GetJWT() (string, error) {
 	if aa.exp == 0 || now > aa.exp {
 		err := aa.Login()
 
-		return "", err
+		if err != nil {
+			aa.jwt = ""
+		}
+
+		return aa.jwt, err
 	}
 
 	return aa.jwt, nil
 }
 
 func (aa *AquaAuth) Login() error {
-	fmt.Println("Logging into Aqua")
-
 	aquaUrl := os.Getenv("AQUA_URL")
 	aquaUsername := os.Getenv("AQUA_USER")
 	aquaPassword := os.Getenv("AQUA_PASSWORD")
-	fmt.Println(aquaPassword, aquaUsername, aquaUrl)
+
 	reqBody := LoginReqBody{Id: aquaUsername, Password: aquaPassword}
 	buffer, _ := json.Marshal(reqBody)
 	reqUrl := aquaUrl + "/api/v1/login"
@@ -91,8 +93,8 @@ func (aa *AquaAuth) Login() error {
 		}
 
 		json.Unmarshal(token.Payload, &exp)
-
 		aa.exp = exp.Exp
+
 		return nil
 	} else {
 		// failure operator needs to quit
