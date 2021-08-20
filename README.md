@@ -26,3 +26,11 @@ Building locally also involves running `envTest` which requires a special enviro
 ### To push image
 
 `make docker-push`
+
+### Generating Manifests
+
+`make genmanifests` will generate the file called `operator.yaml`
+
+### Other commands
+
+You can view the remaining commands in the makefile
