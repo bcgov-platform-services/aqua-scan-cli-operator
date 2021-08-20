@@ -34,3 +34,14 @@ Building locally also involves running `envTest` which requires a special enviro
 ### Other commands
 
 You can view the remaining commands in the makefile
+
+
+## Deploying
+
+The operator expects a secret file called `aqua-scanner-operator-creds` with the following keys
+
+- `AQUA_URL`: the base url (no trailing slash) to the aqua instance
+- `AQUA_USER`: the aqua user account
+- `AQUA_PASSWORD`: the aqua password for the account
+
+> The aqua user must have `administrator` priviledges
