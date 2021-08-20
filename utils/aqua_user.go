@@ -1,4 +1,4 @@
-package aqua
+package utils
 
 import (
 	"bytes"
@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -21,14 +20,14 @@ type User struct {
 	Password string
 }
 
-type aquaResponseJson struct {
+type AquaResponseJson struct {
 	Message string `json:"message"`
 }
 
 func DeleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) error {
 	reqLogger.Info("Deleting user %v in aqua", "user", accountName)
 
-	aquaAuth := utils.GetAquaAuth()
+	aquaAuth := GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
 	if jwtErr != nil {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")
@@ -47,7 +46,7 @@ func DeleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) erro
 		reqLogger.Error(err, "Failed request to DELETE /api/v1/users %v from aqua", accountName)
 		return err
 	}
-	var jsonData aquaResponseJson
+	var jsonData AquaResponseJson
 	body, _ := ioutil.ReadAll(res.Body)
 
 	json.Unmarshal(body, &jsonData)
@@ -64,7 +63,7 @@ func DeleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) erro
 func CreateAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 	reqLogger.Info("Creating user %v in aqua", "user", user.Name)
 
-	aquaAuth := utils.GetAquaAuth()
+	aquaAuth := GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
 	if jwtErr != nil {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")
@@ -108,7 +107,7 @@ func CreateAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 		return err
 	}
 
-	var jsonData aquaResponseJson
+	var jsonData AquaResponseJson
 	body, _ := ioutil.ReadAll(res.Body)
 
 	json.Unmarshal(body, &jsonData)

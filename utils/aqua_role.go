@@ -1,4 +1,4 @@
-package aqua
+package utils
 
 import (
 	"bytes"
@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -25,7 +24,7 @@ type Role struct {
 func DeleteAquaRole(reqLogger *log.DelegatingLogger, role string) error {
 	reqLogger.Info("Deleting role %v in aqua", "role", role)
 
-	aquaAuth := utils.GetAquaAuth()
+	aquaAuth := GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
 	if jwtErr != nil {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")
@@ -57,7 +56,7 @@ func DeleteAquaRole(reqLogger *log.DelegatingLogger, role string) error {
 func CreateAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 	reqLogger.Info("Creating Role %v in aqua", "role", role.Name)
 
-	aquaAuth := utils.GetAquaAuth()
+	aquaAuth := GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
 	if jwtErr != nil {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")
@@ -104,7 +103,7 @@ func CreateAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 	}
 	defer res.Body.Close()
 
-	var jsonData aquaResponseJson
+	var jsonData AquaResponseJson
 	body, _ := ioutil.ReadAll(res.Body)
 
 	json.Unmarshal(body, &jsonData)
