@@ -20,7 +20,7 @@ type User struct {
 	Password string
 }
 
-type aquaResponseJson struct {
+type AquaResponseJson struct {
 	Message string `json:"message"`
 }
 
@@ -46,7 +46,7 @@ func DeleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) erro
 		reqLogger.Error(err, "Failed request to DELETE /api/v1/users %v from aqua", accountName)
 		return err
 	}
-	var jsonData aquaResponseJson
+	var jsonData AquaResponseJson
 	body, _ := ioutil.ReadAll(res.Body)
 
 	json.Unmarshal(body, &jsonData)
@@ -107,7 +107,7 @@ func CreateAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 		return err
 	}
 
-	var jsonData aquaResponseJson
+	var jsonData AquaResponseJson
 	body, _ := ioutil.ReadAll(res.Body)
 
 	json.Unmarshal(body, &jsonData)

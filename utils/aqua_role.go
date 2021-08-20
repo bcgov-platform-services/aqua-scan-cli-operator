@@ -103,7 +103,7 @@ func CreateAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 	}
 	defer res.Body.Close()
 
-	var jsonData aquaResponseJson
+	var jsonData AquaResponseJson
 	body, _ := ioutil.ReadAll(res.Body)
 
 	json.Unmarshal(body, &jsonData)

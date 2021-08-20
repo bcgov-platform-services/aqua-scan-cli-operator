@@ -112,7 +112,7 @@ func CreateAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope Applic
 	}
 	defer res.Body.Close()
 
-	var jsonData aquaResponseJson
+	var jsonData AquaResponseJson
 	body, _ := ioutil.ReadAll(res.Body)
 
 	json.Unmarshal(body, &jsonData)
