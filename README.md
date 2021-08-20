@@ -17,6 +17,12 @@ Use the [Openshift SDK guide](https://docs.openshift.com/container-platform/4.8/
 
 The image is pushed into our shared dockerhub account. Only users with access to the account may push. 
 
-### To build image
+### To build image locally
 
-make docker-build IMG=docker.io/bcgovimages/aqua-scanner-operator-bundle:v0.0.1 KUBEBUILDER_ASSETS=/opt/kubebuilder/testbin/bin
+Building locally also involves running `envTest` which requires a special environment. The [kubebuilder documentation](https://book.kubebuilder.io/reference/envtest.html) outlines setting up env test correctly. Wherever you unpack the kubebuilder binaries is the path you will need to set for `KUBEBUILDER_ASSETS`. Once this is complete you can run `docker-build` similar to
+
+`make docker-build KUBEBUILDER_ASSETS=/opt/kubebuilder/testbin/bin`
+
+### To push image
+
+`make docker-push`
