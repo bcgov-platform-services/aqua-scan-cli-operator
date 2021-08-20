@@ -1,4 +1,4 @@
-package aqua
+package utils
 
 import (
 	"bytes"
@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )

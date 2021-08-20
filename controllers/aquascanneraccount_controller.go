@@ -30,7 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	mamoadevopsgovbccav1alpha1 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha1"
-	aqua "github.com/bcgov-platform-services/aqua-scan-cli-operator/aqua_helpers"
+	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
 	"github.com/m1/go-generate-password/generator"
 )
 
@@ -133,20 +133,20 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		namespacePrefix := strings.TrimSuffix(req.Namespace, "-test")
 
-		applicationScope := aqua.ApplicationScope{
+		applicationScope := utils.ApplicationScope{
 			Name:               aquaScannerAccountName,
 			Description:        "Scanner scoped to " + namespacePrefix + "-* and DockerHub only.",
 			TechnicalLeadEmail: "",
 			NamespacePrefix:    namespacePrefix,
 		}
 
-		role := aqua.Role{
+		role := utils.Role{
 			Name:             aquaScannerAccountName,
 			Description:      "AquaScannerAccount created Role to allow Scanning of resources scoped to " + namespacePrefix + "-* and DockerHub only.",
 			ApplicationScope: applicationScope,
 		}
 
-		applicationScopeErr := aqua.CreateAquaApplicationScope(ctrl.Log, applicationScope)
+		applicationScopeErr := utils.CreateAquaApplicationScope(ctrl.Log, applicationScope)
 
 		if applicationScopeErr != nil {
 			ctrl.Log.Error(applicationScopeErr, "Failed to create application scope")
@@ -161,7 +161,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			return ctrl.Result{Requeue: true}, applicationScopeErr
 		}
 
-		roleErr := aqua.CreateAquaRole(ctrl.Log, role)
+		roleErr := utils.CreateAquaRole(ctrl.Log, role)
 
 		if roleErr != nil {
 			ctrl.Log.Error(roleErr, "Failed to create role")
@@ -196,7 +196,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			pwd, _ = g.Generate()
 		}
 
-		user := aqua.User{
+		user := utils.User{
 			Name:     aquaScannerAccountName,
 			Password: *pwd,
 			Role:     role,
@@ -212,7 +212,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			return ctrl.Result{Requeue: true}, updateErr
 		}
 
-		userErr := aqua.CreateAquaAccount(ctrl.Log, user)
+		userErr := utils.CreateAquaAccount(ctrl.Log, user)
 
 		if userErr != nil {
 			ctrl.Log.Error(userErr, "Failed to create user")
@@ -251,17 +251,17 @@ func (r *AquaScannerAccountReconciler) SetupWithManager(mgr ctrl.Manager) error 
 
 func (r *AquaScannerAccountReconciler) finalizeAquaScannerAccount(reqLogger *log.DelegatingLogger, m *mamoadevopsgovbccav1alpha1.AquaScannerAccount, aquaScannerName string) error {
 
-	delAcctErr := aqua.DeleteAquaAccount(ctrl.Log, aquaScannerName)
+	delAcctErr := utils.DeleteAquaAccount(ctrl.Log, aquaScannerName)
 	if delAcctErr != nil {
 		return delAcctErr
 	}
 
-	delRoleErr := aqua.DeleteAquaRole(ctrl.Log, aquaScannerName)
+	delRoleErr := utils.DeleteAquaRole(ctrl.Log, aquaScannerName)
 	if delRoleErr != nil {
 		return delRoleErr
 	}
 
-	delAppScopeErr := aqua.DeleteAquaApplicationScope(ctrl.Log, aquaScannerName)
+	delAppScopeErr := utils.DeleteAquaApplicationScope(ctrl.Log, aquaScannerName)
 	if delAppScopeErr != nil {
 		return delAppScopeErr
 	}

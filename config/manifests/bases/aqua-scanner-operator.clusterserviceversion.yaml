@@ -1,0 +1,49 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+  name: aqua-scanner-operator.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: AquaScannerAccount is the Schema for the aquascanneraccounts API
+      displayName: Aqua Scanner Account
+      kind: AquaScannerAccount
+      name: aquascanneraccounts.mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+      version: v1alpha1
+  description: An operator that manages a aqua scanner account per project set
+  displayName: aqua-scanner-operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - aqua
+  - aqua scans
+  - operator
+  links:
+  - name: Aqua Scanner Operator
+    url: https://aqua-scanner-operator.domain
+  maintainers:
+  - email: patrick.simonian@gov.bc.ca
+    name: patricksimonian
+  maturity: alpha
+  provider:
+    name: aqua-scanner-account
+  version: 0.0.0

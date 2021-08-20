@@ -30,6 +30,9 @@ spec:
         args:
         - --leader-elect
         image: controller:latest
+        envFrom:
+        - secretRef:
+            name: aqua-scanner-operator-creds
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
