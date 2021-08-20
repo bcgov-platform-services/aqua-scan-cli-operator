@@ -24,7 +24,7 @@ type Role struct {
 func DeleteAquaRole(reqLogger *log.DelegatingLogger, role string) error {
 	reqLogger.Info("Deleting role %v in aqua", "role", role)
 
-	aquaAuth := utils.GetAquaAuth()
+	aquaAuth := GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
 	if jwtErr != nil {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")
@@ -56,7 +56,7 @@ func DeleteAquaRole(reqLogger *log.DelegatingLogger, role string) error {
 func CreateAquaRole(reqLogger *log.DelegatingLogger, role Role) error {
 	reqLogger.Info("Creating Role %v in aqua", "role", role.Name)
 
-	aquaAuth := utils.GetAquaAuth()
+	aquaAuth := GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
 	if jwtErr != nil {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")

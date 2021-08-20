@@ -1,4 +1,4 @@
-package utls
+package utils
 
 import (
 	"bytes"
@@ -25,7 +25,7 @@ type ApplicationScope struct {
 func DeleteAquaApplicationScope(reqLogger *log.DelegatingLogger, applicationScope string) error {
 	reqLogger.Info("Deleting applicationScope %v in aqua", "applicationScope", applicationScope)
 
-	aquaAuth := utils.GetAquaAuth()
+	aquaAuth := GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
 	if jwtErr != nil {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")
@@ -65,7 +65,7 @@ func CreateAquaApplicationScope(reqLogger *log.DelegatingLogger, appScope Applic
 	wd, _ := os.Getwd()
 
 	reqLogger.Info("Creating applicationScope %v-* in aqua", "Namespace Prefix", appScope.NamespacePrefix)
-	aquaAuth := utils.GetAquaAuth()
+	aquaAuth := GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
 	if jwtErr != nil {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")

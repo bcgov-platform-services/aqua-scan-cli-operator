@@ -27,7 +27,7 @@ type aquaResponseJson struct {
 func DeleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) error {
 	reqLogger.Info("Deleting user %v in aqua", "user", accountName)
 
-	aquaAuth := utils.GetAquaAuth()
+	aquaAuth := GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
 	if jwtErr != nil {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")
@@ -63,7 +63,7 @@ func DeleteAquaAccount(reqLogger *log.DelegatingLogger, accountName string) erro
 func CreateAquaAccount(reqLogger *log.DelegatingLogger, user User) error {
 	reqLogger.Info("Creating user %v in aqua", "user", user.Name)
 
-	aquaAuth := utils.GetAquaAuth()
+	aquaAuth := GetAquaAuth()
 	jwt, jwtErr := aquaAuth.GetJWT()
 	if jwtErr != nil {
 		reqLogger.Error(jwtErr, "Failed to login to Aqua")
