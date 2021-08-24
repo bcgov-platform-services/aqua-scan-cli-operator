@@ -59,7 +59,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 	aquaScannerAccount := &mamoadevopsgovbccav1alpha1.AquaScannerAccount{}
 
 	err := r.Get(ctx, req.NamespacedName, aquaScannerAccount)
-	namespacePrefix := strings.TrimSuffix(req.Namespace, "-test")
+	namespacePrefix := strings.TrimSuffix(req.Namespace, "-tools")
 	aquaScannerAccountName := "ScannerCLI_" + namespacePrefix
 
 	if err != nil {
