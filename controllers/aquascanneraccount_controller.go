@@ -187,7 +187,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 				IncludeNumbers:             true,
 				IncludeLowercaseLetters:    true,
 				IncludeUppercaseLetters:    true,
-				ExcludeSimilarCharacters:   true,
+				ExcludeSimilarCharacters:   false,
 				ExcludeAmbiguousCharacters: true,
 			}
 			g, _ := generator.New(&config)
