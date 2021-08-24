@@ -59,7 +59,8 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 	aquaScannerAccount := &mamoadevopsgovbccav1alpha1.AquaScannerAccount{}
 
 	err := r.Get(ctx, req.NamespacedName, aquaScannerAccount)
-	aquaScannerAccountName := "ScannerCLI_" + req.Namespace
+	namespacePrefix := strings.TrimSuffix(req.Namespace, "-test")
+	aquaScannerAccountName := "ScannerCLI_" + namespacePrefix
 
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -130,8 +131,6 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			ctrl.Log.Error(err, "Failed to update aquaScannerAccount Status")
 			return ctrl.Result{Requeue: true}, err
 		}
-
-		namespacePrefix := strings.TrimSuffix(req.Namespace, "-test")
 
 		applicationScope := utils.ApplicationScope{
 			Name:               aquaScannerAccountName,
