@@ -5,7 +5,7 @@ metadata:
   name: aquascanneraccount-viewer-role
 rules:
 - apiGroups:
-  - mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+  - mamoa.devops.gov.bc.ca
   resources:
   - aquascanneraccounts
   verbs:
@@ -13,7 +13,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+  - mamoa.devops.gov.bc.ca
   resources:
   - aquascanneraccounts/status
   verbs:

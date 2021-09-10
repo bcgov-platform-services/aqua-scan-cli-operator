@@ -4,4 +4,4 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: $(CERTIFICATE_NAMESPACE)/$(CERTIFICATE_NAME)
-  name: aquascanneraccounts.mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+  name: aquascanneraccounts.mamoa.devops.gov.bc.ca
