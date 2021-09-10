@@ -5,7 +5,7 @@ metadata:
     alm-examples: |-
       [
         {
-          "apiVersion": "mamoa.devops.gov.bc.ca.devops.gov.bc.ca/v1alpha1",
+          "apiVersion": "mamoa.devops.gov.bc.ca/v1alpha1",
           "kind": "AquaScannerAccount",
           "metadata": {
             "name": "aquascanneraccount-sample"
@@ -25,7 +25,7 @@ spec:
     - description: AquaScannerAccount is the Schema for the aquascanneraccounts API
       displayName: Aqua Scanner Account
       kind: AquaScannerAccount
-      name: aquascanneraccounts.mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+      name: aquascanneraccounts.mamoa.devops.gov.bc.ca
       version: v1alpha1
   description: An operator that manages a aqua scanner account per project set
   displayName: aqua-scanner-operator
@@ -37,7 +37,7 @@ spec:
       clusterPermissions:
       - rules:
         - apiGroups:
-          - mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+          - mamoa.devops.gov.bc.ca
           resources:
           - aquascanneraccounts
           verbs:
@@ -49,13 +49,13 @@ spec:
           - update
           - watch
         - apiGroups:
-          - mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+          - mamoa.devops.gov.bc.ca
           resources:
           - aquascanneraccounts/finalizers
           verbs:
           - update
         - apiGroups:
-          - mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+          - mamoa.devops.gov.bc.ca
           resources:
           - aquascanneraccounts/status
           verbs:

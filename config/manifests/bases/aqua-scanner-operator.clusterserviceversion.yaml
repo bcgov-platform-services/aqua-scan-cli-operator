@@ -13,7 +13,7 @@ spec:
     - description: AquaScannerAccount is the Schema for the aquascanneraccounts API
       displayName: Aqua Scanner Account
       kind: AquaScannerAccount
-      name: aquascanneraccounts.mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+      name: aquascanneraccounts.mamoa.devops.gov.bc.ca
       version: v1alpha1
   description: An operator that manages a aqua scanner account per project set
   displayName: aqua-scanner-operator

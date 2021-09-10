@@ -4,9 +4,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.1
   creationTimestamp: null
-  name: aquascanneraccounts.mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+  name: aquascanneraccounts.mamoa.devops.gov.bc.ca
 spec:
-  group: mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+  group: mamoa.devops.gov.bc.ca
   names:
     kind: AquaScannerAccount
     listKind: AquaScannerAccountList

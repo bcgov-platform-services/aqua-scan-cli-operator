@@ -7,7 +7,7 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+  - mamoa.devops.gov.bc.ca
   resources:
   - aquascanneraccounts
   verbs:
@@ -19,13 +19,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+  - mamoa.devops.gov.bc.ca
   resources:
   - aquascanneraccounts/finalizers
   verbs:
   - update
 - apiGroups:
-  - mamoa.devops.gov.bc.ca.devops.gov.bc.ca
+  - mamoa.devops.gov.bc.ca
   resources:
   - aquascanneraccounts/status
   verbs:

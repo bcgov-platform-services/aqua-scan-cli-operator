@@ -34,7 +34,7 @@ import (
 	"github.com/m1/go-generate-password/generator"
 )
 
-const aquaScannerAccountFinalizer = "mamoa.devops.gov.bc.ca.devops.gov.bc.ca/finalizer"
+const aquaScannerAccountFinalizer = "mamoa.devops.gov.bc.ca/finalizer"
 
 // AquaScannerAccountReconciler reconciles a AquaScannerAccount object
 type AquaScannerAccountReconciler struct {
@@ -42,9 +42,9 @@ type AquaScannerAccountReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=mamoa.devops.gov.bc.ca.devops.gov.bc.ca,resources=aquascanneraccounts,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=mamoa.devops.gov.bc.ca.devops.gov.bc.ca,resources=aquascanneraccounts/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=mamoa.devops.gov.bc.ca.devops.gov.bc.ca,resources=aquascanneraccounts/finalizers,verbs=update
+//+kubebuilder:rbac:groups=mamoa.devops.gov.bc.ca,resources=aquascanneraccounts,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=mamoa.devops.gov.bc.ca,resources=aquascanneraccounts/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=mamoa.devops.gov.bc.ca,resources=aquascanneraccounts/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
