@@ -31,7 +31,6 @@ import (
 
 	mamoadevopsgovbccav1alpha1 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha1"
 	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
-	"github.com/m1/go-generate-password/generator"
 )
 
 const aquaScannerAccountFinalizer = "mamoa.devops.gov.bc.ca/finalizer"
@@ -181,18 +180,8 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		if aquaScannerAccount.Status.AccountSecret != "" {
 			pwd = &aquaScannerAccount.Status.AccountSecret
 		} else {
-			config := generator.Config{
-				Length:                     16,
-				IncludeSymbols:             true,
-				IncludeNumbers:             true,
-				IncludeLowercaseLetters:    true,
-				IncludeUppercaseLetters:    true,
-				ExcludeSimilarCharacters:   false,
-				ExcludeAmbiguousCharacters: true,
-			}
-			g, _ := generator.New(&config)
-
-			pwd, _ = g.Generate()
+			pw := utils.GeneratePassword(16, true, true, true)
+			pwd = &pw
 		}
 
 		user := utils.User{
