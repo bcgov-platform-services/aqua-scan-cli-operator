@@ -46,7 +46,7 @@ func DeleteAquaRole(reqLogger *log.DelegatingLogger, role string) error {
 		return err
 	}
 
-	if res.StatusCode != 204 {
+	if res.StatusCode != 204 && res.StatusCode != 404 {
 		e := errors.NewBadRequest(fmt.Sprintf("Error: Could not delete role, the response status from aqua was %v", res.StatusCode))
 		return e
 	}
