@@ -1,10 +1,8 @@
 package utils
 
 import (
-	"fmt"
 	"math/rand"
 	"regexp"
-	"strings"
 )
 
 func makePassword(length int, generationString []rune) string {
@@ -16,10 +14,13 @@ func makePassword(length int, generationString []rune) string {
 }
 
 func GeneratePassword(length int, hasSymbols bool, hasNumbers bool, hasUppercase bool) string {
-	lowercase := "abcdefghijklmnopqrstuvwxyz"
-	uppercase := strings.ToUpper(lowercase)
-	numbers := "0123456789"
-	symbols := "!@#$"
+	const (
+		lowercase = "abcdefghijklmnopqrstuvwxyz"
+		numbers   = "0123456789"
+		symbols   = "!@#$"
+		uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	)
+
 	reLowercase, _ := regexp.Compile("[a-z]+")
 	reUppercase, _ := regexp.Compile("[A-Z]+")
 	reNumbers, _ := regexp.Compile("[0-9]+")
@@ -46,7 +47,7 @@ func GeneratePassword(length int, hasSymbols bool, hasNumbers bool, hasUppercase
 	for {
 		password = makePassword(length, genStringRunes)
 		pBytes := []byte(password)
-		fmt.Println(password, reNumbers.Match(pBytes))
+
 		if hasNumbers {
 
 			numbersMatch := reNumbers.Match(pBytes)
