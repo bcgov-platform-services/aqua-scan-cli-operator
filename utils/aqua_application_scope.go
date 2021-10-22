@@ -54,7 +54,7 @@ func DeleteAquaApplicationScope(reqLogger *log.DelegatingLogger, applicationScop
 		return err
 	}
 
-	if res.StatusCode != 204 {
+	if res.StatusCode != 204 && res.StatusCode != 404 {
 		e := errors.NewBadRequest(fmt.Sprintf("Error: Could not delete application scope, the response status from aqua was %v", res.StatusCode))
 		return e
 	}
