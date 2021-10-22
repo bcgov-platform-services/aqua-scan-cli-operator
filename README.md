@@ -45,3 +45,7 @@ The operator expects a secret file called `aqua-scanner-operator-creds` with the
 - `AQUA_PASSWORD`: the aqua password for the account
 
 > The aqua user must have `administrator` priviledges
+
+## Managment
+
+The operator is managed by ArgoCD in the private platform-services instance via CCM
