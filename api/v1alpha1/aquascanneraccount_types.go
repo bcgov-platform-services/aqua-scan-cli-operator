@@ -39,6 +39,7 @@ type AquaScannerAccountStatus struct {
 	AccountName      string `json:"accountName"`
 	AccountSecret    string `json:"accountSecret"`
 	metav1.Timestamp `json:"timestamp"`
+	Message          string `json:"message"`
 }
 
 //+kubebuilder:object:root=true

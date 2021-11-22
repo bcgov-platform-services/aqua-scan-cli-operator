@@ -121,10 +121,10 @@ func GetAquaAuth() *AquaAuth {
 func SetEnvForAsaLoginCheck(getJWT func() (string, error), reqLogger *log.DelegatingLogger) {
 	_, jwtErr := getJWT()
 	if jwtErr != nil {
-		reqLogger.Error(jwtErr, "Login Check Failed")
+		reqLogger.Error(jwtErr, "Aqua login check Failed")
 		os.Setenv("ASA_LOGIN_CHECK_DID_FAIL", "true")
 	} else {
-		reqLogger.Error(jwtErr, "Login Check Passed")
+		reqLogger.Error(jwtErr, "Aqua login check Passed")
 		os.Setenv("ASA_LOGIN_CHECK_DID_FAIL", "false")
 	}
 }
