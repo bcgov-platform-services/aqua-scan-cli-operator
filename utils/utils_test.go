@@ -1,9 +1,37 @@
 package utils
 
 import (
+	"errors"
+	"os"
 	"regexp"
+	"strconv"
 	"testing"
+
+	ctrl "sigs.k8s.io/controller-runtime"
 )
+
+func mockGetJwtFail() (string, error) {
+	return "", errors.New("this func failed")
+}
+
+func mockGetJwtPass() (string, error) {
+	return "", nil
+}
+
+func TestSetEnvForAsaLoginCheck(t *testing.T) {
+	SetEnvForAsaLoginCheck(mockGetJwtFail, ctrl.Log)
+	b, _ := strconv.ParseBool(os.Getenv("ASA_LOGIN_CHECK_DID_FAIL"))
+	if !b {
+		t.Errorf("SetEnvForAsaLoginCheck was supposed to return true but got %v", os.Getenv("ASA_LOGIN_CHECK_DID_FAIL"))
+	}
+
+	SetEnvForAsaLoginCheck(mockGetJwtPass, ctrl.Log)
+	c, _ := strconv.ParseBool(os.Getenv("ASA_LOGIN_CHECK_DID_FAIL"))
+
+	if c {
+		t.Errorf("SetEnvForAsaLoginCheck was supposed to return false but got %v", os.Getenv("ASA_LOGIN_CHECK_DID_FAIL"))
+	}
+}
 
 func TestUtilsGetTechnicalContact(t *testing.T) {
 	technicalContactAnnotation := "- role: Product Owner\n  email: matt.damon@gov.bc.ca\n  rocketchat:\n- role: Technical Lead\n  email: patrick.simonian@gov.bc.ca\n  rocketchat:\n"
