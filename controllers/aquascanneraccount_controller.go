@@ -146,7 +146,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		err := errors.NewUnauthorized(errorMessage)
 		aquaUrl := os.Getenv("AQUA_URL")
 		aquaUsername := os.Getenv("AQUA_USER")
-		ctrl.Log.Error(err, "AquaScannerAccount did not authenticate with Aqua. This is required for reconciliation. Does the manager have the correct credentials to authenticate with Aqua ( url: "+aquaUrl+" user: "+aquaUsername+")")
+		ctrl.Log.Error(err, "AquaScannerAccount did not authenticate with Aqua. This is required for reconciliation. Does the manager have the correct credentials to authenticate with Aqua ( url: "+aquaUrl+" user: "+aquaUsername+")?")
 		return ctrl.Result{Requeue: false}, err
 	}
 
