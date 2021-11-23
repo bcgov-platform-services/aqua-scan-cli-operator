@@ -12,6 +12,7 @@ import (
 
 	"github.com/kataras/jwt"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type AquaAuth struct {
@@ -110,4 +111,20 @@ func GetAquaAuth() *AquaAuth {
 		aquaAuth = &AquaAuth{}
 	}
 	return aquaAuth
+}
+
+/*
+	Sets an env var ASA_LOGIN_CHECK_DID_FAIL to string true|false
+	this var is picked up by the main reconcilliation loop and pauses main reconcilliation when true.
+	This provides a point for operator intervention where the manager pod can be restarted to retrigger the check.
+*/
+func SetEnvForAsaLoginCheck(getJWT func() (string, error), reqLogger *log.DelegatingLogger) {
+	_, jwtErr := getJWT()
+	if jwtErr != nil {
+		reqLogger.Error(jwtErr, "Aqua login check Failed")
+		os.Setenv("ASA_LOGIN_CHECK_DID_FAIL", "true")
+	} else {
+		reqLogger.Error(jwtErr, "Aqua login check Passed")
+		os.Setenv("ASA_LOGIN_CHECK_DID_FAIL", "false")
+	}
 }

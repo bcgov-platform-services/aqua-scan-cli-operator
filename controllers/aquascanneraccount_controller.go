@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -61,6 +63,18 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 	namespacePrefix := strings.TrimSuffix(req.Namespace, "-tools")
 	aquaScannerAccountName := "ScannerCLI_" + namespacePrefix
 
+	// set env var for aqua auth check when the variable is unset
+	if os.Getenv("ASA_LOGIN_CHECK_DID_FAIL") == "" {
+		utils.SetEnvForAsaLoginCheck(utils.GetAquaAuth().GetJWT, ctrl.Log)
+	}
+
+	aquaLoginCheckFailed, boolCastErr := strconv.ParseBool(os.Getenv("ASA_LOGIN_CHECK_DID_FAIL"))
+
+	if boolCastErr != nil {
+		ctrl.Log.Error(boolCastErr, "failed to parse boolean from env var ASA_LOGIN_CHECK_DID_FAIL")
+		return ctrl.Result{}, boolCastErr
+	}
+
 	if err != nil {
 		if errors.IsNotFound(err) {
 			ctrl.Log.Error(err, "AquaScannerAccount not found. Ignoring as this object is deleted")
@@ -72,11 +86,13 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 	}
 	// if in wrong namespace
 	if !strings.HasSuffix(req.Namespace, "-tools") {
+		errorMessage := "AquaScannerAccount not allowed to be created in a non '-tools' namespace"
+		err := errors.NewBadRequest(errorMessage)
+
 		ctrl.Log.Error(err, "AquaScannerAccount can only be created in namespaces ending in -tools. It was created in %v", req.Namespace)
-		err := errors.NewBadRequest("AquaScannerAccount not allowed to be created in a non '-tools' namespace")
 
 		aquaScannerAccount.Status.CurrentState = "Failure"
-
+		aquaScannerAccount.Status.Message = errorMessage
 		aquaScannerAccount.Status.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
 		updateErr := r.Status().Update(ctx, aquaScannerAccount)
 
@@ -122,8 +138,21 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}
 	}
 
+	if aquaLoginCheckFailed {
+		errorMessage := "AquaScannerAccount failed to authenticate with Aqua API. Reconcilliation Failed."
+		aquaScannerAccount.Status.CurrentState = "Failed"
+		aquaScannerAccount.Status.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
+		aquaScannerAccount.Status.Message = errorMessage
+		err := errors.NewUnauthorized(errorMessage)
+		aquaUrl := os.Getenv("AQUA_URL")
+		aquaUsername := os.Getenv("AQUA_USER")
+		ctrl.Log.Error(err, "AquaScannerAccount did not authenticate with Aqua. This is required for reconciliation. Does the manager have the correct credentials to authenticate with Aqua ( url: "+aquaUrl+" user: "+aquaUsername+")?")
+		return ctrl.Result{Requeue: false}, err
+	}
+
 	if aquaScannerAccount.Status.CurrentState != "Complete" {
 		aquaScannerAccount.Status.CurrentState = "Running"
+		aquaScannerAccount.Status.Message = "Beginning reconciliation"
 		aquaScannerAccount.Status.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
 		updateErr := r.Status().Update(ctx, aquaScannerAccount)
 		if updateErr != nil {
@@ -149,6 +178,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		if applicationScopeErr != nil {
 			ctrl.Log.Error(applicationScopeErr, "Failed to create application scope")
 			aquaScannerAccount.Status.CurrentState = "Failure"
+			aquaScannerAccount.Status.Message = "Reconcilliation failed. Was unable to create application scope. Will re-attempt."
 			aquaScannerAccount.Status.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
 			updateErr = r.Status().Update(ctx, aquaScannerAccount)
 
@@ -164,6 +194,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		if roleErr != nil {
 			ctrl.Log.Error(roleErr, "Failed to create role")
 			aquaScannerAccount.Status.CurrentState = "Failure"
+			aquaScannerAccount.Status.Message = "Reconcilliation failed. Was unable to create role. Will re-attempt."
 			aquaScannerAccount.Status.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
 			updateErr = r.Status().Update(ctx, aquaScannerAccount)
 
@@ -205,6 +236,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 		if userErr != nil {
 			ctrl.Log.Error(userErr, "Failed to create user")
 			aquaScannerAccount.Status.CurrentState = "Failure"
+			aquaScannerAccount.Status.Message = "Reconcilliation failed. Was unable to create aqua user. Will re-attempt."
 			aquaScannerAccount.Status.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
 			updateErr = r.Status().Update(ctx, aquaScannerAccount)
 
@@ -218,6 +250,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		// set status to Complete
 		aquaScannerAccount.Status.CurrentState = "Complete"
+		aquaScannerAccount.Status.Message = "Reconcilliation successful!"
 		aquaScannerAccount.Status.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
 		updateErr = r.Status().Update(ctx, aquaScannerAccount)
 

@@ -51,6 +51,8 @@ spec:
                   of cluster Important: Run "make" to regenerate code after modifying
                   this file'
                 type: string
+              message:
+                type: string
               timestamp:
                 description: Timestamp is a struct that is equivalent to Time, but
                   intended for protobuf marshalling/unmarshalling. It is generated
@@ -77,6 +79,7 @@ spec:
             - accountName
             - accountSecret
             - currentState
+            - message
             - timestamp
             type: object
         type: object
