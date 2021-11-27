@@ -45,7 +45,7 @@ type AquaScannerAccountStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	CurrentState     AquaScannerAccountAquaObjectState `json:"currentState"`
-	State            string                            `json:"Status"`
+	State            string                            `json:"State"`
 	AccountName      string                            `json:"accountName"`
 	AccountSecret    string                            `json:"accountSecret"`
 	metav1.Timestamp `json:"timestamp"`

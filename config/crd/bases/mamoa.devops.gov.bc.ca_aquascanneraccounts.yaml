@@ -42,7 +42,7 @@ spec:
           status:
             description: AquaScannerAccountStatus defines the observed state of AquaScannerAccount
             properties:
-              Status:
+              State:
                 type: string
               accountName:
                 type: string
@@ -111,7 +111,7 @@ spec:
                 - seconds
                 type: object
             required:
-            - Status
+            - State
             - accountName
             - accountSecret
             - currentState
