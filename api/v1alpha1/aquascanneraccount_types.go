@@ -31,15 +31,26 @@ type AquaScannerAccountSpec struct {
 	// Foo is an example field of AquaScannerAccount. Edit aquascanneraccount_types.go to remove/update
 }
 
+// defines a more finely grained desired state for the CR when interacting with aqua api
+// values of these properties should be like "CREATED" "NOT_CREATED"
+type AquaScannerAccountAquaObjectState struct {
+	ApplicationScope string `json:"applicationScope"`
+	PermissionSet    string `json:"permissionSet"`
+	User             string `json:"user"`
+	Role             string `json:"role"`
+}
+
 // AquaScannerAccountStatus defines the observed state of AquaScannerAccount
 type AquaScannerAccountStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	CurrentState     string `json:"currentState"`
-	AccountName      string `json:"accountName"`
-	AccountSecret    string `json:"accountSecret"`
+	CurrentState     AquaScannerAccountAquaObjectState `json:"currentState"`
+	State            string                            `json:"Status"`
+	AccountName      string                            `json:"accountName"`
+	AccountSecret    string                            `json:"accountSecret"`
 	metav1.Timestamp `json:"timestamp"`
-	Message          string `json:"message"`
+	Message          string                            `json:"message"`
+	DesiredState     AquaScannerAccountAquaObjectState `json:"desiredState"`
 }
 
 //+kubebuilder:object:root=true

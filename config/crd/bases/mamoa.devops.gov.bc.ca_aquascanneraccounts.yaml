@@ -42,6 +42,8 @@ spec:
           status:
             description: AquaScannerAccountStatus defines the observed state of AquaScannerAccount
             properties:
+              Status:
+                type: string
               accountName:
                 type: string
               accountSecret:
@@ -50,7 +52,40 @@ spec:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                   of cluster Important: Run "make" to regenerate code after modifying
                   this file'
-                type: string
+                properties:
+                  applicationScope:
+                    type: string
+                  permissionSet:
+                    type: string
+                  role:
+                    type: string
+                  user:
+                    type: string
+                required:
+                - applicationScope
+                - permissionSet
+                - role
+                - user
+                type: object
+              desiredState:
+                description: defines a more finely grained desired state for the CR
+                  when interacting with aqua api values of these properties should
+                  be like "CREATED" "NOT_CREATED"
+                properties:
+                  applicationScope:
+                    type: string
+                  permissionSet:
+                    type: string
+                  role:
+                    type: string
+                  user:
+                    type: string
+                required:
+                - applicationScope
+                - permissionSet
+                - role
+                - user
+                type: object
               message:
                 type: string
               timestamp:
@@ -76,9 +111,11 @@ spec:
                 - seconds
                 type: object
             required:
+            - Status
             - accountName
             - accountSecret
             - currentState
+            - desiredState
             - message
             - timestamp
             type: object
