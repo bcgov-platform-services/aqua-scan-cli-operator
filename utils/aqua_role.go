@@ -19,6 +19,7 @@ type Role struct {
 	Name        string
 	Description string
 	ApplicationScope
+	PermissionSet
 }
 
 func DeleteAquaRole(reqLogger *log.DelegatingLogger, role string) error {

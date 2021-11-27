@@ -7,8 +7,48 @@ import (
 	"strconv"
 	"testing"
 
+	asa "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
+
+func TestMergeStatus(t *testing.T) {
+	oldStatus := asa.AquaScannerAccountStatus{}
+	newStatus := asa.AquaScannerAccountStatus{Message: "Hello World", State: "Complete"}
+
+	mergedStatus := MergeStatus(oldStatus, newStatus)
+
+	if mergedStatus != (asa.AquaScannerAccountStatus{Message: "Hello World", State: "Complete"}) {
+		t.Errorf("MergeStatus was supposed return an AquaScannerAccountStatus of %v but got %v when oldStatus is in a zero state", newStatus, mergedStatus)
+	}
+
+	oldStatus = asa.AquaScannerAccountStatus{Message: "Matt Damon", State: "Failed", AccountName: "Matt Damon"}
+	newStatus = asa.AquaScannerAccountStatus{Message: "Hello World", State: "Complete"}
+
+	mergedStatus = MergeStatus(oldStatus, newStatus)
+
+	if mergedStatus.Message != "Hello World" {
+		t.Errorf("MergeStatus was supposed return an AquaScannerAccountStatus with Message: %v but got %v when oldStatus is in a non zero state", newStatus.Message, mergedStatus.Message)
+	}
+
+	if mergedStatus.State != "Complete" {
+		t.Errorf("MergeStatus was supposed return an AquaScannerAccountStatus with State: %v but got %v when oldStatus is in a non zero state", newStatus.Message, mergedStatus.Message)
+	}
+
+	if mergedStatus.AccountName != "Matt Damon" {
+		t.Errorf("MergeStatus was supposed return an AquaScannerAccountStatus with AccountName: Matt Damon but got %v when oldStatus.AccountName is Matt Damon", mergedStatus.Message)
+	}
+
+	// testing desired state remains static
+	desiredState := asa.AquaScannerAccountAquaObjectState{ApplicationScope: "Created"}
+	oldStatus = asa.AquaScannerAccountStatus{Message: "Matt Damon", State: "Failed", AccountName: "Matt Damon", DesiredState: desiredState}
+	newStatus = asa.AquaScannerAccountStatus{Message: "Hello World", State: "Complete"}
+
+	mergedStatus = MergeStatus(oldStatus, newStatus)
+
+	if mergedStatus.DesiredState != desiredState {
+		t.Errorf("MergeStatus was supposed return an AquaScannerAccountStatus with DesiredState unchanged but got %v", mergedStatus.DesiredState)
+	}
+}
 
 func mockGetJwtFail() (string, error) {
 	return "", errors.New("this func failed")
