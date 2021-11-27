@@ -32,7 +32,7 @@ type AquaScannerAccountSpec struct {
 }
 
 // defines a more finely grained desired state for the CR when interacting with aqua api
-// values of these properties should be like "CREATED" "NOT_CREATED"
+// values of these properties should be like "Created" "Not Created"
 type AquaScannerAccountAquaObjectState struct {
 	ApplicationScope string `json:"applicationScope"`
 	PermissionSet    string `json:"permissionSet"`

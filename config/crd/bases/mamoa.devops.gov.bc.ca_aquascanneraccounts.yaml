@@ -70,7 +70,7 @@ spec:
               desiredState:
                 description: defines a more finely grained desired state for the CR
                   when interacting with aqua api values of these properties should
-                  be like "CREATED" "NOT_CREATED"
+                  be like "Created" "Not Created"
                 properties:
                   applicationScope:
                     type: string
