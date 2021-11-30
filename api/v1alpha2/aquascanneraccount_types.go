@@ -56,6 +56,7 @@ type AquaScannerAccountStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:shortName=asa
+//+kubebuilder:storageversion
 // AquaScannerAccount is the Schema for the aquascanneraccounts API
 type AquaScannerAccount struct {
 	metav1.TypeMeta   `json:",inline"`
