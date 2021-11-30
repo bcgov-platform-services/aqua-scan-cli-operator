@@ -1,9 +1,12 @@
 /*
 Copyright 2021.
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
+
     http://www.apache.org/licenses/LICENSE-2.0
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -11,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package v1alpha1 contains API Schema definitions for the mamoa.devops.gov.bc.ca v1alpha1 API group
+// Package v1alpha2 contains API Schema definitions for the mamoa.devops.gov.bc.ca v1alpha2 API group
 //+kubebuilder:object:generate=true
 //+groupName=mamoa.devops.gov.bc.ca
-package v1alpha1
+package v1alpha2
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -23,7 +26,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "mamoa.devops.gov.bc.ca", Version: "v1alpha1"}
+	GroupVersion = schema.GroupVersion{Group: "mamoa.devops.gov.bc.ca", Version: "v1alpha2"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
