@@ -3,14 +3,16 @@
 # It should be run by config/default
 resources:
 - bases/mamoa.devops.gov.bc.ca_aquascanneraccounts.yaml
-- bases/mamoa.devops.gov.bc.ca_aquascanneraccounts.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
-patchesStrategicMerge:
+patches:
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix.
 # patches here are for enabling the conversion webhook for each CRD
 #- patches/webhook_in_aquascanneraccounts.yaml
-- patched/deprecated_v1alpha1.yaml
+- path: patches/deprecated_v1alpha1.yaml
+  target:
+   kind: CustomResourceDefinition
+   name: aquascanneraccounts.mamoa.devops.gov.bc.ca
 #+kubebuilder:scaffold:crdkustomizewebhookpatch
 
 # [CERTMANAGER] To enable cert-manager, uncomment all the sections with [CERTMANAGER] prefix.
