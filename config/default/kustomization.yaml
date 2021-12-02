@@ -6,11 +6,11 @@ namespace: aqua-scanner-operator-system
 # "wordpress" becomes "alices-wordpress".
 # Note that it should also match with the prefix (text before '-') of the namespace
 # field above.
-namePrefix: aqua-scanner-operator-
+namePrefix: aqua-scanner-operator-v1alpha2-
 
 # Labels to add to all resources and selectors.
-#commonLabels:
-#  someName: someValue
+commonLabels:
+ app-version: v1alpha2
 
 bases:
 - ../crd

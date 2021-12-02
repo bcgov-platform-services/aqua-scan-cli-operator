@@ -14,4 +14,6 @@ data:
       resourceName: 81c785f5.devops.gov.bc.ca
 kind: ConfigMap
 metadata:
-  name: aqua-scanner-operator-manager-config
+  labels:
+    app-version: v1alpha2
+  name: aqua-scanner-operator-v1alpha2-manager-config

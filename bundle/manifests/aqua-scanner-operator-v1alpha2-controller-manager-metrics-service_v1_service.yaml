@@ -3,14 +3,16 @@ kind: Service
 metadata:
   creationTimestamp: null
   labels:
+    app-version: v1alpha2
     control-plane: controller-manager
-  name: aqua-scanner-operator-controller-manager-metrics-service
+  name: aqua-scanner-operator-v1alpha2-controller-manager-metrics-service
 spec:
   ports:
   - name: https
     port: 8443
     targetPort: https
   selector:
+    app-version: v1alpha2
     control-plane: controller-manager
 status:
   loadBalancer: {}

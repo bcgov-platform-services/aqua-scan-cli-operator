@@ -11,12 +11,22 @@ metadata:
             "name": "aquascanneraccount-sample"
           },
           "spec": {}
+        },
+        {
+          "apiVersion": "mamoa.devops.gov.bc.ca/v1alpha2",
+          "kind": "AquaScannerAccount",
+          "metadata": {
+            "name": "aquascanneraccount-sample"
+          },
+          "spec": {
+            "foo": "bar"
+          }
         }
       ]
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.10.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: aqua-scanner-operator.v0.0.1
+  name: aqua-scanner-operator.v0.0.5
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -27,6 +37,9 @@ spec:
       kind: AquaScannerAccount
       name: aquascanneraccounts.mamoa.devops.gov.bc.ca
       version: v1alpha1
+    - kind: AquaScannerAccount
+      name: aquascanneraccounts.mamoa.devops.gov.bc.ca
+      version: v1alpha2
   description: An operator that manages a aqua scanner account per project set
   displayName: aqua-scanner-operator
   icon:
@@ -74,18 +87,20 @@ spec:
           - subjectaccessreviews
           verbs:
           - create
-        serviceAccountName: aqua-scanner-operator-controller-manager
+        serviceAccountName: aqua-scanner-operator-v1alpha2-controller-manager
       deployments:
-      - name: aqua-scanner-operator-controller-manager
+      - name: aqua-scanner-operator-v1alpha2-controller-manager
         spec:
           replicas: 1
           selector:
             matchLabels:
+              app-version: v1alpha2
               control-plane: controller-manager
           strategy: {}
           template:
             metadata:
               labels:
+                app-version: v1alpha2
                 control-plane: controller-manager
             spec:
               containers:
@@ -109,7 +124,7 @@ spec:
                 envFrom:
                 - secretRef:
                     name: aqua-scanner-operator-creds
-                image: controller:latest
+                image: docker.io/bcdevopscluster/aqua-scanner-operator-bundle:v0.0.5
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -134,7 +149,7 @@ spec:
                   allowPrivilegeEscalation: false
               securityContext:
                 runAsNonRoot: true
-              serviceAccountName: aqua-scanner-operator-controller-manager
+              serviceAccountName: aqua-scanner-operator-v1alpha2-controller-manager
               terminationGracePeriodSeconds: 10
       permissions:
       - rules:
@@ -169,7 +184,7 @@ spec:
           verbs:
           - create
           - patch
-        serviceAccountName: aqua-scanner-operator-controller-manager
+        serviceAccountName: aqua-scanner-operator-v1alpha2-controller-manager
     strategy: deployment
   installModes:
   - supported: false
@@ -193,4 +208,4 @@ spec:
   maturity: alpha
   provider:
     name: aqua-scanner-account
-  version: 0.0.1
+  version: 0.0.5
