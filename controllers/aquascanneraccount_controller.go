@@ -107,7 +107,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 	// initialize desired state
 	if aquaScannerAccount.Status.DesiredState == (asa.AquaScannerAccountAquaObjectState{}) {
-		aquaObjectState := asa.AquaScannerAccountAquaObjectState{ApplicationScope: asa.Created, PermissionSet: asa.Created, Role: asa.Created, User: asa.Created}
+		aquaObjectState := asa.AquaScannerAccountAquaObjectState{ApplicationScope: asa.Created.String(), PermissionSet: asa.Created.String(), Role: asa.Created.String(), User: asa.Created.String()}
 
 		updateErr := utils.UpdateStatus(ctx, aquaScannerAccount, asa.AquaScannerAccountStatus{DesiredState: aquaObjectState}, r.Status(), ctrl.Log)
 
@@ -174,7 +174,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		// if this is the first time reconciling the CR the currentState will be empty and needs to be initialized
 		if aquaScannerAccount.Status.CurrentState == (asa.AquaScannerAccountAquaObjectState{}) {
-			newStatus.CurrentState = asa.AquaScannerAccountAquaObjectState{ApplicationScope: asa.NotCreated, PermissionSet: asa.NotCreated, Role: asa.NotCreated, User: asa.NotCreated}
+			newStatus.CurrentState = asa.AquaScannerAccountAquaObjectState{ApplicationScope: asa.NotCreated.String(), PermissionSet: asa.NotCreated.String(), Role: asa.NotCreated.String(), User: asa.NotCreated.String()}
 		}
 
 		updateErr := utils.UpdateStatus(ctx, aquaScannerAccount, newStatus, r.Status(), ctrl.Log)
@@ -203,14 +203,14 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			PermissionSet:    permissionSet,
 		}
 
-		if aquaScannerAccount.Status.CurrentState.ApplicationScope != asa.Created {
+		if aquaScannerAccount.Status.CurrentState.ApplicationScope != asa.Created.String() {
 			applicationScopeErr := utils.CreateAquaApplicationScope(ctrl.Log, applicationScope)
 
 			if applicationScopeErr != nil {
 				ctrl.Log.Error(applicationScopeErr, "Failed to create application scope")
 
 				newCurrentState := aquaScannerAccount.Status.CurrentState
-				newCurrentState.ApplicationScope = asa.NotCreated
+				newCurrentState.ApplicationScope = asa.NotCreated.String()
 				newStatus := asa.AquaScannerAccountStatus{State: "Failed", Message: "Reconcilliation failed. Was unable to create application scope. Will re-attempt.", CurrentState: newCurrentState}
 
 				updateErr := utils.UpdateStatus(ctx, aquaScannerAccount, newStatus, r.Status(), ctrl.Log)
@@ -222,7 +222,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 				return ctrl.Result{Requeue: true}, applicationScopeErr
 			} else {
 				newCurrentState := aquaScannerAccount.Status.CurrentState
-				newCurrentState.ApplicationScope = asa.Created
+				newCurrentState.ApplicationScope = asa.Created.String()
 				newStatus := asa.AquaScannerAccountStatus{CurrentState: newCurrentState}
 
 				updateErr := utils.UpdateStatus(ctx, aquaScannerAccount, newStatus, r.Status(), ctrl.Log)
@@ -234,14 +234,14 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 		}
 
-		if aquaScannerAccount.Status.CurrentState.Role != asa.Created {
+		if aquaScannerAccount.Status.CurrentState.Role != asa.Created.String() {
 			roleErr := utils.CreateAquaRole(ctrl.Log, role)
 
 			if roleErr != nil {
 				ctrl.Log.Error(roleErr, "Failed to create role")
 
 				newCurrentState := aquaScannerAccount.Status.CurrentState
-				newCurrentState.Role = asa.NotCreated
+				newCurrentState.Role = asa.NotCreated.String()
 				newStatus := asa.AquaScannerAccountStatus{State: "Failed", Message: "Reconcilliation failed. Was unable to create role. Will re-attempt.", CurrentState: newCurrentState}
 
 				updateErr := utils.UpdateStatus(ctx, aquaScannerAccount, newStatus, r.Status(), ctrl.Log)
@@ -253,7 +253,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 				return ctrl.Result{Requeue: true}, roleErr
 			} else {
 				newCurrentState := aquaScannerAccount.Status.CurrentState
-				newCurrentState.Role = asa.Created
+				newCurrentState.Role = asa.Created.String()
 				newStatus := asa.AquaScannerAccountStatus{CurrentState: newCurrentState}
 
 				updateErr := utils.UpdateStatus(ctx, aquaScannerAccount, newStatus, r.Status(), ctrl.Log)
@@ -264,14 +264,14 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			}
 		}
 
-		if aquaScannerAccount.Status.CurrentState.PermissionSet != asa.Created {
+		if aquaScannerAccount.Status.CurrentState.PermissionSet != asa.Created.String() {
 			permissionSetErr := utils.CreateAquaPermissionSet(ctrl.Log, permissionSet)
 
 			if permissionSetErr != nil {
 				ctrl.Log.Error(permissionSetErr, "Failed to create role")
 
 				newCurrentState := aquaScannerAccount.Status.CurrentState
-				newCurrentState.PermissionSet = asa.NotCreated
+				newCurrentState.PermissionSet = asa.NotCreated.String()
 				newStatus := asa.AquaScannerAccountStatus{State: "Failed", Message: "Reconcilliation failed. Was unable to create role. Will re-attempt.", CurrentState: newCurrentState}
 
 				updateErr := utils.UpdateStatus(ctx, aquaScannerAccount, newStatus, r.Status(), ctrl.Log)
@@ -283,7 +283,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 				return ctrl.Result{Requeue: true}, permissionSetErr
 			} else {
 				newCurrentState := aquaScannerAccount.Status.CurrentState
-				newCurrentState.PermissionSet = asa.Created
+				newCurrentState.PermissionSet = asa.Created.String()
 				newStatus := asa.AquaScannerAccountStatus{CurrentState: newCurrentState}
 
 				updateErr := utils.UpdateStatus(ctx, aquaScannerAccount, newStatus, r.Status(), ctrl.Log)
@@ -294,7 +294,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			}
 		}
 
-		if aquaScannerAccount.Status.CurrentState.User != asa.Created {
+		if aquaScannerAccount.Status.CurrentState.User != asa.Created.String() {
 
 			var pwd *string
 
@@ -322,7 +322,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 			if userErr != nil {
 				ctrl.Log.Error(userErr, "Failed to create user")
 				newCurrentState := aquaScannerAccount.Status.CurrentState
-				newCurrentState.User = asa.NotCreated
+				newCurrentState.User = asa.NotCreated.String()
 				newStatus := asa.AquaScannerAccountStatus{State: "Failed", Message: "Reconcilliation failed. Was unable to create aqua user. Will re-attempt.", CurrentState: newCurrentState}
 
 				aquaScannerAccount.Status.State = "Failed"
@@ -336,7 +336,7 @@ func (r *AquaScannerAccountReconciler) Reconcile(ctx context.Context, req ctrl.R
 				return ctrl.Result{Requeue: true}, userErr
 			} else {
 				newCurrentState := aquaScannerAccount.Status.CurrentState
-				newCurrentState.User = asa.Created
+				newCurrentState.User = asa.Created.String()
 				newStatus := asa.AquaScannerAccountStatus{CurrentState: newCurrentState}
 
 				updateErr := utils.UpdateStatus(ctx, aquaScannerAccount, newStatus, r.Status(), ctrl.Log)

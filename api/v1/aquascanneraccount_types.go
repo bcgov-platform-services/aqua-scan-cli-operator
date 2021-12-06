@@ -45,10 +45,10 @@ func (aosm AquaObjectState) String() string {
 // defines a more finely grained desired state for the CR when interacting with aqua api
 // values of these properties should be like "Created" "Not Created"
 type AquaScannerAccountAquaObjectState struct {
-	ApplicationScope AquaObjectState `json:"applicationScope"`
-	PermissionSet    AquaObjectState `json:"permissionSet"`
-	User             AquaObjectState `json:"user"`
-	Role             AquaObjectState `json:"role"`
+	ApplicationScope string `json:"applicationScope"`
+	PermissionSet    string `json:"permissionSet"`
+	User             string `json:"user"`
+	Role             string `json:"role"`
 }
 
 // AquaScannerAccountStatus defines the observed state of AquaScannerAccount

@@ -32,17 +32,17 @@ func (src *AquaScannerAccount) ConvertTo(dstRaw conversion.Hub) error {
 	// ***not setting DesiredState as controller handles that and updates accordingly
 
 	if state == "Complete" {
-		dst.Status.CurrentState = v1.AquaScannerAccountAquaObjectState{ApplicationScope: v1.Created, Role: v1.Created, PermissionSet: v1.Created, User: v1.Created}
+		dst.Status.CurrentState = v1.AquaScannerAccountAquaObjectState{ApplicationScope: v1.Created.String(), Role: v1.Created.String(), PermissionSet: v1.Created.String(), User: v1.Created.String()}
 		dst.Status.Message = "Reconcilliation Successful!"
 	} else if state == "Running" {
 		dst.Status.Message = "Beginning reconcilliation"
-		dst.Status.CurrentState = v1.AquaScannerAccountAquaObjectState{ApplicationScope: v1.NotCreated, Role: v1.NotCreated, PermissionSet: v1.NotCreated, User: v1.NotCreated}
+		dst.Status.CurrentState = v1.AquaScannerAccountAquaObjectState{ApplicationScope: v1.NotCreated.String(), Role: v1.NotCreated.String(), PermissionSet: v1.NotCreated.String(), User: v1.NotCreated.String()}
 	} else if state == "Failed" {
 		dst.Status.Message = "Reconcilliation Failed"
-		dst.Status.CurrentState = v1.AquaScannerAccountAquaObjectState{ApplicationScope: v1.NotCreated, Role: v1.NotCreated, PermissionSet: v1.NotCreated, User: v1.NotCreated}
+		dst.Status.CurrentState = v1.AquaScannerAccountAquaObjectState{ApplicationScope: v1.NotCreated.String(), Role: v1.NotCreated.String(), PermissionSet: v1.NotCreated.String(), User: v1.NotCreated.String()}
 	} else {
 		dst.Status.Message = "Reconcilliation not complete"
-		dst.Status.CurrentState = v1.AquaScannerAccountAquaObjectState{ApplicationScope: v1.NotCreated, Role: v1.NotCreated, PermissionSet: v1.NotCreated, User: v1.NotCreated}
+		dst.Status.CurrentState = v1.AquaScannerAccountAquaObjectState{ApplicationScope: v1.NotCreated.String(), Role: v1.NotCreated.String(), PermissionSet: v1.NotCreated.String(), User: v1.NotCreated.String()}
 	}
 
 	return nil
