@@ -88,6 +88,10 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "AquaScannerAccount")
 		os.Exit(1)
 	}
+	if err = (&mamoadevopsgovbccav1.AquaScannerAccount{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "AquaScannerAccount")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

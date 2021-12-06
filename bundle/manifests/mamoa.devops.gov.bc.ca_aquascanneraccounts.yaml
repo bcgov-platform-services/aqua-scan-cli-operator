@@ -8,6 +8,16 @@ metadata:
     app-version: v1
   name: aquascanneraccounts.mamoa.devops.gov.bc.ca
 spec:
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          name: aqua-scanner-operator-webhook-service
+          namespace: aqua-scanner-operator-system
+          path: /convert
+      conversionReviewVersions:
+      - v1
   group: mamoa.devops.gov.bc.ca
   names:
     kind: AquaScannerAccount

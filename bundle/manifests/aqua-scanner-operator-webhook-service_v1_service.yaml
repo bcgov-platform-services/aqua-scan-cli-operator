@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app-version: v1
+  name: aqua-scanner-operator-webhook-service
+spec:
+  ports:
+  - port: 443
+    targetPort: 9443
+  selector:
+    app-version: v1
+    control-plane: controller-manager
+status:
+  loadBalancer: {}
