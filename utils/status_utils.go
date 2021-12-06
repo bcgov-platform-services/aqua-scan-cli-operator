@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	mamoadevopsgovbccav1alpha1 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha2"
+	asa "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -13,8 +13,8 @@ import (
 /*
 	A struct merge with the caveat desiredStatus is not merged and remains static from the old status since it should never change
 */
-func MergeStatus(oldStatus mamoadevopsgovbccav1alpha1.AquaScannerAccountStatus, newStatus mamoadevopsgovbccav1alpha1.AquaScannerAccountStatus) mamoadevopsgovbccav1alpha1.AquaScannerAccountStatus {
-	var mergedStatus mamoadevopsgovbccav1alpha1.AquaScannerAccountStatus
+func MergeStatus(oldStatus asa.AquaScannerAccountStatus, newStatus asa.AquaScannerAccountStatus) asa.AquaScannerAccountStatus {
+	var mergedStatus asa.AquaScannerAccountStatus
 
 	if newStatus.State != "" {
 		mergedStatus.State = newStatus.State
@@ -40,7 +40,7 @@ func MergeStatus(oldStatus mamoadevopsgovbccav1alpha1.AquaScannerAccountStatus, 
 		mergedStatus.Message = oldStatus.Message
 	}
 
-	if newStatus.CurrentState != (mamoadevopsgovbccav1alpha1.AquaScannerAccountAquaObjectState{}) {
+	if newStatus.CurrentState != (asa.AquaScannerAccountAquaObjectState{}) {
 		mergedStatus.CurrentState = newStatus.CurrentState
 	} else {
 		mergedStatus.CurrentState = oldStatus.CurrentState
@@ -51,7 +51,7 @@ func MergeStatus(oldStatus mamoadevopsgovbccav1alpha1.AquaScannerAccountStatus, 
 	return mergedStatus
 }
 
-func UpdateStatus(ctx context.Context, account *mamoadevopsgovbccav1alpha1.AquaScannerAccount, newStatus mamoadevopsgovbccav1alpha1.AquaScannerAccountStatus, clientWriter client.StatusWriter, reqLogger *log.DelegatingLogger) error {
+func UpdateStatus(ctx context.Context, account *asa.AquaScannerAccount, newStatus asa.AquaScannerAccountStatus, clientWriter client.StatusWriter, reqLogger *log.DelegatingLogger) error {
 
 	mergedStatus := MergeStatus(account.Status, newStatus)
 	mergedStatus.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
