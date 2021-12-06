@@ -39,7 +39,7 @@ func TestMergeStatus(t *testing.T) {
 	}
 
 	// testing desired state remains static
-	desiredState := asa.AquaScannerAccountAquaObjectState{ApplicationScope: "Created"}
+	desiredState := asa.AquaScannerAccountAquaObjectState{ApplicationScope: asa.Created}
 	oldStatus = asa.AquaScannerAccountStatus{Message: "Matt Damon", State: "Failed", AccountName: "Matt Damon", DesiredState: desiredState}
 	newStatus = asa.AquaScannerAccountStatus{Message: "Hello World", State: "Complete"}
 

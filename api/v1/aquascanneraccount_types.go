@@ -31,13 +31,24 @@ type AquaScannerAccountSpec struct {
 	// Foo is an example field of AquaScannerAccount. Edit aquascanneraccount_types.go to remove/update
 }
 
+type AquaObjectState int
+
+const (
+	Created AquaObjectState = iota
+	NotCreated
+)
+
+func (aosm AquaObjectState) String() string {
+	return []string{"Created", "Not Created"}[aosm]
+}
+
 // defines a more finely grained desired state for the CR when interacting with aqua api
 // values of these properties should be like "Created" "Not Created"
 type AquaScannerAccountAquaObjectState struct {
-	ApplicationScope string `json:"applicationScope"`
-	PermissionSet    string `json:"permissionSet"`
-	User             string `json:"user"`
-	Role             string `json:"role"`
+	ApplicationScope AquaObjectState `json:"applicationScope"`
+	PermissionSet    AquaObjectState `json:"permissionSet"`
+	User             AquaObjectState `json:"user"`
+	Role             AquaObjectState `json:"role"`
 }
 
 // AquaScannerAccountStatus defines the observed state of AquaScannerAccount
@@ -78,3 +89,6 @@ type AquaScannerAccountList struct {
 func init() {
 	SchemeBuilder.Register(&AquaScannerAccount{}, &AquaScannerAccountList{})
 }
+
+// Hub marks this type as a conversion hub.
+func (*AquaScannerAccount) Hub() {}
