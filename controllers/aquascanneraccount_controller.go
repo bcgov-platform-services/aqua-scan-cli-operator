@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	asa "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha2"
+	asa "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1"
 	"github.com/bcgov-platform-services/aqua-scan-cli-operator/utils"
 )
 

@@ -11,16 +11,6 @@ metadata:
             "name": "aquascanneraccount-sample"
           },
           "spec": {}
-        },
-        {
-          "apiVersion": "mamoa.devops.gov.bc.ca/v1alpha2",
-          "kind": "AquaScannerAccount",
-          "metadata": {
-            "name": "aquascanneraccount-sample"
-          },
-          "spec": {
-            "foo": "bar"
-          }
         }
       ]
     capabilities: Basic Install
@@ -32,14 +22,14 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
+    - kind: AquaScannerAccount
+      name: aquascanneraccounts.mamoa.devops.gov.bc.ca
+      version: v1
     - description: AquaScannerAccount is the Schema for the aquascanneraccounts API
       displayName: Aqua Scanner Account
       kind: AquaScannerAccount
       name: aquascanneraccounts.mamoa.devops.gov.bc.ca
       version: v1alpha1
-    - kind: AquaScannerAccount
-      name: aquascanneraccounts.mamoa.devops.gov.bc.ca
-      version: v1alpha2
   description: An operator that manages a aqua scanner account per project set
   displayName: aqua-scanner-operator
   icon:
@@ -87,20 +77,20 @@ spec:
           - subjectaccessreviews
           verbs:
           - create
-        serviceAccountName: aqua-scanner-operator-v1alpha2-controller-manager
+        serviceAccountName: aqua-scanner-operator-controller-manager
       deployments:
-      - name: aqua-scanner-operator-v1alpha2-controller-manager
+      - name: aqua-scanner-operator-controller-manager
         spec:
           replicas: 1
           selector:
             matchLabels:
-              app-version: v1alpha2
+              app-version: v1
               control-plane: controller-manager
           strategy: {}
           template:
             metadata:
               labels:
-                app-version: v1alpha2
+                app-version: v1
                 control-plane: controller-manager
             spec:
               containers:
@@ -149,7 +139,7 @@ spec:
                   allowPrivilegeEscalation: false
               securityContext:
                 runAsNonRoot: true
-              serviceAccountName: aqua-scanner-operator-v1alpha2-controller-manager
+              serviceAccountName: aqua-scanner-operator-controller-manager
               terminationGracePeriodSeconds: 10
       permissions:
       - rules:
@@ -184,7 +174,7 @@ spec:
           verbs:
           - create
           - patch
-        serviceAccountName: aqua-scanner-operator-v1alpha2-controller-manager
+        serviceAccountName: aqua-scanner-operator-controller-manager
     strategy: deployment
   installModes:
   - supported: false

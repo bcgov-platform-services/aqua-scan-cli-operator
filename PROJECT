@@ -22,6 +22,6 @@ resources:
   domain: devops.gov.bc.ca
   group: mamoa.devops.gov.bc.ca
   kind: AquaScannerAccount
-  path: github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha2
-  version: v1alpha2
+  path: github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1
+  version: v1
 version: "3"

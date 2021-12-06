@@ -14,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package v1alpha2 contains API Schema definitions for the mamoa.devops.gov.bc.ca v1alpha2 API group
+// Package v1 contains API Schema definitions for the mamoa.devops.gov.bc.ca v1 API group
 //+kubebuilder:object:generate=true
 //+groupName=mamoa.devops.gov.bc.ca
-package v1alpha2
+package v1
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -26,7 +26,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "mamoa.devops.gov.bc.ca", Version: "v1alpha2"}
+	GroupVersion = schema.GroupVersion{Group: "mamoa.devops.gov.bc.ca", Version: "v1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}

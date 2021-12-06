@@ -15,5 +15,5 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    app-version: v1alpha2
-  name: aqua-scanner-operator-v1alpha2-manager-config
+    app-version: v1
+  name: aqua-scanner-operator-manager-config

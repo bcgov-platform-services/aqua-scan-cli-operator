@@ -30,8 +30,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	mamoadevopsgovbccav1 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1"
 	mamoadevopsgovbccav1alpha1 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha1"
-	mamoadevopsgovbccav1alpha2 "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1alpha2"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -66,7 +66,7 @@ var _ = BeforeSuite(func() {
 	err = mamoadevopsgovbccav1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = mamoadevopsgovbccav1alpha2.AddToScheme(scheme.Scheme)
+	err = mamoadevopsgovbccav1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:scheme
