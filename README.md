@@ -51,3 +51,7 @@ The operator expects a secret file called `aqua-scanner-operator-creds` with the
 - `AQUA_PASSWORD`: the aqua password for the account
 
 > The aqua user must have `administrator` priviledges
+
+## Development
+
+Before you develop this operator further it is strongly recommended you run through the operator sdk tutorial as well as the kube builder tutorial. It will save you a TON of time!
