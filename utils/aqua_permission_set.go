@@ -41,7 +41,7 @@ func DeleteAquaPermissionSet(reqLogger *log.DelegatingLogger, permissionSet stri
 	reqUrl := os.Getenv("AQUA_URL") + "/api/v2/access_management/permissions/" + permissionSet
 	client := &http.Client{}
 
-	req, _ := http.NewRequest("POST", reqUrl, bytes.NewBuffer(reqPayload))
+	req, _ := http.NewRequest("DELETE", reqUrl, bytes.NewBuffer(reqPayload))
 	req.Header.Set("Authorization", "Bearer "+jwt)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
