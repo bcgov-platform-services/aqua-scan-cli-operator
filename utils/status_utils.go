@@ -11,6 +11,16 @@ import (
 )
 
 /*
+	Returns the desired state if needed, the boolean return allows calling function to decide if it should update status or now
+*/
+func SetDesiredStateIfNeeded(state asa.AquaScannerAccountAquaObjectState) (asa.AquaScannerAccountAquaObjectState, bool) {
+	if state == (asa.AquaScannerAccountAquaObjectState{}) {
+		return asa.AquaScannerAccountAquaObjectState{ApplicationScope: asa.Created.String(), PermissionSet: asa.Created.String(), Role: asa.Created.String(), User: asa.Created.String()}, true
+	}
+	return asa.AquaScannerAccountAquaObjectState{}, false
+}
+
+/*
 	A struct merge with the caveat desiredStatus is not merged and remains static from the old status since it should never change
 */
 func MergeStatus(oldStatus asa.AquaScannerAccountStatus, newStatus asa.AquaScannerAccountStatus) asa.AquaScannerAccountStatus {
@@ -40,13 +50,19 @@ func MergeStatus(oldStatus asa.AquaScannerAccountStatus, newStatus asa.AquaScann
 		mergedStatus.Message = oldStatus.Message
 	}
 
+	// because updateStatus doesn't necessarily need to provide a new status with the currentState or desiredState
+	// check if the newStatus is updating currentState, if so use it, otherwise, use the old status
 	if newStatus.CurrentState != (asa.AquaScannerAccountAquaObjectState{}) {
 		mergedStatus.CurrentState = newStatus.CurrentState
 	} else {
 		mergedStatus.CurrentState = oldStatus.CurrentState
 	}
-	// desired state should remain static
-	mergedStatus.DesiredState = oldStatus.DesiredState
+
+	if newStatus.DesiredState != (asa.AquaScannerAccountAquaObjectState{}) {
+		mergedStatus.DesiredState = newStatus.DesiredState
+	} else {
+		mergedStatus.DesiredState = oldStatus.DesiredState
+	}
 
 	return mergedStatus
 }
@@ -57,6 +73,8 @@ func UpdateStatus(ctx context.Context, account *asa.AquaScannerAccount, newStatu
 	mergedStatus.Timestamp = v1.Timestamp{Seconds: time.Now().Unix(), Nanos: int32(time.Now().UnixNano())}
 	account.Status = mergedStatus
 
+	// to prevent race condition between rapid updates
+	time.Sleep(200 * time.Millisecond)
 	err := clientWriter.Update(ctx, account)
 
 	if err != nil {

@@ -11,7 +11,23 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
+func TestSetDesiredStateIfNeeded(t *testing.T) {
+	emptyDesiredState := asa.AquaScannerAccountAquaObjectState{}
+
+	newDesiredState, shouldUpdate := SetDesiredStateIfNeeded(emptyDesiredState)
+
+	if !shouldUpdate {
+		t.Errorf("SetDesiredStateIfNeeded should have returned boolean as true but got false")
+	}
+
+	shouldEqual := newDesiredState == asa.AquaScannerAccountAquaObjectState{ApplicationScope: asa.Created.String(), PermissionSet: asa.Created.String(), Role: asa.Created.String(), User: asa.Created.String()}
+	if !shouldEqual {
+		t.Errorf("SetDesiredStateIfNeeded should have returned an initialized desired state but it returned the zero state instead, %#v", newDesiredState)
+	}
+}
+
 func TestMergeStatus(t *testing.T) {
+
 	oldStatus := asa.AquaScannerAccountStatus{}
 	newStatus := asa.AquaScannerAccountStatus{Message: "Hello World", State: "Complete"}
 
@@ -38,7 +54,6 @@ func TestMergeStatus(t *testing.T) {
 		t.Errorf("MergeStatus was supposed return an AquaScannerAccountStatus with AccountName: Matt Damon but got %v when oldStatus.AccountName is Matt Damon", mergedStatus.Message)
 	}
 
-	// testing desired state remains static
 	desiredState := asa.AquaScannerAccountAquaObjectState{ApplicationScope: asa.Created.String()}
 	oldStatus = asa.AquaScannerAccountStatus{Message: "Matt Damon", State: "Failed", AccountName: "Matt Damon", DesiredState: desiredState}
 	newStatus = asa.AquaScannerAccountStatus{Message: "Hello World", State: "Complete"}

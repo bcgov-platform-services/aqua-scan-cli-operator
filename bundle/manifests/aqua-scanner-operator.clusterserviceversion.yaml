@@ -5,6 +5,14 @@ metadata:
     alm-examples: |-
       [
         {
+          "apiVersion": "mamoa.devops.gov.bc.ca/v1",
+          "kind": "AquaScannerAccount",
+          "metadata": {
+            "name": "aquascanneraccount-sample"
+          },
+          "spec": {}
+        },
+        {
           "apiVersion": "mamoa.devops.gov.bc.ca/v1alpha1",
           "kind": "AquaScannerAccount",
           "metadata": {
@@ -16,7 +24,7 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.10.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: aqua-scanner-operator.v0.0.5
+  name: aqua-scanner-operator.v0.0.5-alpha
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -114,7 +122,7 @@ spec:
                 envFrom:
                 - secretRef:
                     name: aqua-scanner-operator-creds
-                image: docker.io/bcdevopscluster/aqua-scanner-operator-bundle:v0.0.5
+                image: docker.io/bcdevopscluster/aqua-scanner-operator-bundle:v0.0.5-alpha
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -153,7 +161,7 @@ spec:
               - name: cert
                 secret:
                   defaultMode: 420
-                  secretName: webhook-server-cert
+                  secretName: webhook-service
       permissions:
       - rules:
         - apiGroups:
@@ -211,7 +219,7 @@ spec:
   maturity: alpha
   provider:
     name: aqua-scanner-account
-  version: 0.0.5
+  version: 0.0.5-alpha
   webhookdefinitions:
   - admissionReviewVersions:
     - v1

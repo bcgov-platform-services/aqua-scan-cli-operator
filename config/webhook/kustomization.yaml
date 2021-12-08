@@ -1,6 +1,10 @@
 resources:
-# - manifests.yaml
 - service.yaml
 
 configurations:
 - kustomizeconfig.yaml
+
+## ONLY TO BE USED WHILE CERT MANAGER IS NOT INSTALLABLE
+## WHEN CERT MANAGER IS INSTALLED DISABLE THIS PATCH
+patches:
+- patches/service_serving_cert.yaml

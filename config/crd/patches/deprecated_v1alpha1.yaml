@@ -2,7 +2,7 @@
 [
   {
     "op": "add",
-    "path": "/spec/versions/0/deprecated",
+    "path": "/spec/versions/1/deprecated",
     # This indicates the v1alpha1 version of the custom resource is deprecated.
     # API requests to this version receive a warning header in the server response.
     "value": true,
@@ -10,7 +10,7 @@
   },
   {
     "op": "add",
-    "path": "/spec/versions/0/deprecationWarning",
+    "path": "/spec/versions/1/deprecationWarning",
     # This indicates the v1alpha1 version of the custom resource is deprecated.
     # API requests to this version receive a warning header in the server response.
     "value": "mamoa.devops.gov.bc.ca/v1alpha1 AquaScannerAccount is deprecated. Please upgrade to v1"

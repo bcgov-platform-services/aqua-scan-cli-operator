@@ -90,7 +90,7 @@ func CreateAquaPermissionSet(reqLogger *log.DelegatingLogger, permissionSet Perm
 	var permissionSetBuffer bytes.Buffer
 	ut.Execute(&permissionSetBuffer, permissionSet)
 
-	reqUrl := os.Getenv("AQUA_URL") + "api/v2/access_management/permissions"
+	reqUrl := os.Getenv("AQUA_URL") + "/api/v2/access_management/permissions"
 	client := &http.Client{}
 	req, clientErr := http.NewRequest("POST", reqUrl, bytes.NewBuffer(permissionSetBuffer.Bytes()))
 
