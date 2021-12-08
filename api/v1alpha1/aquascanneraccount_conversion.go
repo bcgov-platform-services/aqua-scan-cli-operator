@@ -23,7 +23,9 @@ import (
 // dst = v1
 func (src *AquaScannerAccount) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*v1.AquaScannerAccount)
-
+	dst.Name = src.Name
+	dst.Namespace = src.Namespace
+	dst.UID = src.UID
 	state := src.Status.CurrentState
 	dst.Status.Timestamp = src.Status.Timestamp
 	dst.Status.AccountName = src.Status.AccountName
@@ -51,7 +53,9 @@ func (src *AquaScannerAccount) ConvertTo(dstRaw conversion.Hub) error {
 // ConvertFrom converts from the Hub version (v1) to this version v1alpha1.
 func (dst *AquaScannerAccount) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*v1.AquaScannerAccount)
-
+	dst.Name = src.Name
+	dst.Namespace = src.Namespace
+	dst.UID = src.UID
 	dst.Status.Timestamp = src.Status.Timestamp
 	dst.Status.AccountName = src.Status.AccountName
 	dst.Status.AccountSecret = src.Status.AccountSecret
