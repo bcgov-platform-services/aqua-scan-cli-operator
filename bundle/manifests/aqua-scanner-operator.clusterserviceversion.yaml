@@ -24,7 +24,7 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.10.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: aqua-scanner-operator.v0.0.5-alpha
+  name: aqua-scanner-operator.v0.0.5
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -122,7 +122,7 @@ spec:
                 envFrom:
                 - secretRef:
                     name: aqua-scanner-operator-creds
-                image: docker.io/bcdevopscluster/aqua-scanner-operator-bundle:v0.0.5-alpha
+                image: docker.io/bcdevopscluster/aqua-scanner-operator-bundle:v0.0.5
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -219,7 +219,7 @@ spec:
   maturity: alpha
   provider:
     name: aqua-scanner-account
-  version: 0.0.5-alpha
+  version: 0.0.5
   webhookdefinitions:
   - admissionReviewVersions:
     - v1

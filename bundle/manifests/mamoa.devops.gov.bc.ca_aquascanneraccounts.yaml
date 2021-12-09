@@ -3,6 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.6.1
+    service.beta.openshift.io/inject-cabundle: "true"
   creationTimestamp: null
   labels:
     app-version: v1
@@ -14,7 +15,7 @@ spec:
       clientConfig:
         service:
           name: aqua-scanner-operator-webhook-service
-          namespace: aqua-scanner-operator-system
+          namespace: openshift-bcgov-aqua
           path: /convert
       conversionReviewVersions:
       - v1

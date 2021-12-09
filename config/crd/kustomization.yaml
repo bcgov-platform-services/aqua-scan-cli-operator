@@ -8,6 +8,7 @@ patchesStrategicMerge:
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix.
 # patches here are for enabling the conversion webhook for each CRD
 - patches/webhook_in_aquascanneraccounts.yaml
+- patches/cainjection_service_serving_cert.yaml
 
 patches:
 
