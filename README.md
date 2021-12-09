@@ -66,3 +66,8 @@ Before you develop this operator further it is strongly recommended you run thro
 This codebase utilized the operator-sdk to generate a webhook to manage conversion between apiVersions that are available for the CRD and the storage version `v1`. In order for this to work, the webhook must serve traffic through HTTPS. The webhook expects a certificate to be located within `/tmp/k8s-webhook-server/serving-certs` inside `deployments.apps/aqua-scanner-operator-controller-manager` manager container.
 
 Typically __Cert Manager__ would be used in this case to automatically manage generation and renewal of a certificate. At this time (Dec 2021), Cert Manager is not installable and so you will need another solution to generate a certificate. The option currently being used is a [service serving certificate](https://docs.openshift.com/container-platform/4.7/security/certificates/service-serving-certificate.html). 
+
+## Managment
+
+The operator is managed by ArgoCD in the private platform-services instance via CCM
+
