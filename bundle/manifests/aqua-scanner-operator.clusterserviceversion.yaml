@@ -5,6 +5,14 @@ metadata:
     alm-examples: |-
       [
         {
+          "apiVersion": "mamoa.devops.gov.bc.ca/v1",
+          "kind": "AquaScannerAccount",
+          "metadata": {
+            "name": "aquascanneraccount-sample"
+          },
+          "spec": {}
+        },
+        {
           "apiVersion": "mamoa.devops.gov.bc.ca/v1alpha1",
           "kind": "AquaScannerAccount",
           "metadata": {
@@ -16,12 +24,15 @@ metadata:
     capabilities: Basic Install
     operators.operatorframework.io/builder: operator-sdk-v1.10.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
-  name: aqua-scanner-operator.v0.0.1
+  name: aqua-scanner-operator.v0.0.5-alpha
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
+    - kind: AquaScannerAccount
+      name: aquascanneraccounts.mamoa.devops.gov.bc.ca
+      version: v1
     - description: AquaScannerAccount is the Schema for the aquascanneraccounts API
       displayName: Aqua Scanner Account
       kind: AquaScannerAccount
@@ -81,11 +92,13 @@ spec:
           replicas: 1
           selector:
             matchLabels:
+              app-version: v1
               control-plane: controller-manager
           strategy: {}
           template:
             metadata:
               labels:
+                app-version: v1
                 control-plane: controller-manager
             spec:
               containers:
@@ -109,7 +122,7 @@ spec:
                 envFrom:
                 - secretRef:
                     name: aqua-scanner-operator-creds
-                image: controller:latest
+                image: docker.io/bcdevopscluster/aqua-scanner-operator-bundle:v0.0.5-alpha
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -117,6 +130,10 @@ spec:
                   initialDelaySeconds: 15
                   periodSeconds: 20
                 name: manager
+                ports:
+                - containerPort: 9443
+                  name: webhook-server
+                  protocol: TCP
                 readinessProbe:
                   httpGet:
                     path: /readyz
@@ -132,10 +149,19 @@ spec:
                     memory: 20Mi
                 securityContext:
                   allowPrivilegeEscalation: false
+                volumeMounts:
+                - mountPath: /tmp/k8s-webhook-server/serving-certs
+                  name: cert
+                  readOnly: true
               securityContext:
                 runAsNonRoot: true
               serviceAccountName: aqua-scanner-operator-controller-manager
               terminationGracePeriodSeconds: 10
+              volumes:
+              - name: cert
+                secret:
+                  defaultMode: 420
+                  secretName: webhook-service
       permissions:
       - rules:
         - apiGroups:
@@ -193,4 +219,16 @@ spec:
   maturity: alpha
   provider:
     name: aqua-scanner-account
-  version: 0.0.1
+  version: 0.0.5-alpha
+  webhookdefinitions:
+  - admissionReviewVersions:
+    - v1
+    containerPort: 443
+    conversionCRDs:
+    - aquascanneraccounts.mamoa.devops.gov.bc.ca
+    deploymentName: aqua-scanner-operator-controller-manager
+    generateName: caquascanneraccounts.kb.io
+    sideEffects: None
+    targetPort: 9443
+    type: ConversionWebhook
+    webhookPath: /convert

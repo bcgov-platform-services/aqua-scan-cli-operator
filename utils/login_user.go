@@ -124,7 +124,7 @@ func SetEnvForAsaLoginCheck(getJWT func() (string, error), reqLogger *log.Delega
 		reqLogger.Error(jwtErr, "Aqua login check Failed")
 		os.Setenv("ASA_LOGIN_CHECK_DID_FAIL", "true")
 	} else {
-		reqLogger.Error(jwtErr, "Aqua login check Passed")
+		reqLogger.Info("Aqua login check Passed")
 		os.Setenv("ASA_LOGIN_CHECK_DID_FAIL", "false")
 	}
 }

@@ -2,6 +2,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
+  labels:
+    app-version: v1
   name: aqua-scanner-operator-metrics-reader
 rules:
 - nonResourceURLs:
