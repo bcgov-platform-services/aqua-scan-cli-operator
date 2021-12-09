@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: docker.io/bcdevopscluster/aqua-scanner-operator-bundle
-  newTag: v0.0.5-alpha
+  newTag: v0.0.5
