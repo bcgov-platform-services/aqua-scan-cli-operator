@@ -119,6 +119,9 @@ spec:
                 - --leader-elect
                 command:
                 - /manager
+                env:
+                - name: AQUA_URL
+                  value: https://aqua.apps.clab.devops.gov.bc.ca
                 envFrom:
                 - secretRef:
                     name: aqua-scanner-operator-creds
