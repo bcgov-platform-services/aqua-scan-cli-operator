@@ -1,0 +1,5 @@
+apiVersion: mamoa.devops.gov.bc.ca/v1
+kind: AquaScannerAccount
+metadata:
+  name: aquascanneraccount-sample
+spec: {}

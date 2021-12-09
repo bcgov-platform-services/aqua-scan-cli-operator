@@ -1,9 +1,92 @@
 package utils
 
 import (
+	"errors"
+	"os"
 	"regexp"
+	"strconv"
 	"testing"
+
+	asa "github.com/bcgov-platform-services/aqua-scan-cli-operator/api/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
+
+func TestSetDesiredStateIfNeeded(t *testing.T) {
+	emptyDesiredState := asa.AquaScannerAccountAquaObjectState{}
+
+	newDesiredState, shouldUpdate := SetDesiredStateIfNeeded(emptyDesiredState)
+
+	if !shouldUpdate {
+		t.Errorf("SetDesiredStateIfNeeded should have returned boolean as true but got false")
+	}
+
+	shouldEqual := newDesiredState == asa.AquaScannerAccountAquaObjectState{ApplicationScope: asa.Created.String(), PermissionSet: asa.Created.String(), Role: asa.Created.String(), User: asa.Created.String()}
+	if !shouldEqual {
+		t.Errorf("SetDesiredStateIfNeeded should have returned an initialized desired state but it returned the zero state instead, %#v", newDesiredState)
+	}
+}
+
+func TestMergeStatus(t *testing.T) {
+
+	oldStatus := asa.AquaScannerAccountStatus{}
+	newStatus := asa.AquaScannerAccountStatus{Message: "Hello World", State: "Complete"}
+
+	mergedStatus := MergeStatus(oldStatus, newStatus)
+
+	if mergedStatus != (asa.AquaScannerAccountStatus{Message: "Hello World", State: "Complete"}) {
+		t.Errorf("MergeStatus was supposed return an AquaScannerAccountStatus of %v but got %v when oldStatus is in a zero state", newStatus, mergedStatus)
+	}
+
+	oldStatus = asa.AquaScannerAccountStatus{Message: "Matt Damon", State: "Failed", AccountName: "Matt Damon"}
+	newStatus = asa.AquaScannerAccountStatus{Message: "Hello World", State: "Complete"}
+
+	mergedStatus = MergeStatus(oldStatus, newStatus)
+
+	if mergedStatus.Message != "Hello World" {
+		t.Errorf("MergeStatus was supposed return an AquaScannerAccountStatus with Message: %v but got %v when oldStatus is in a non zero state", newStatus.Message, mergedStatus.Message)
+	}
+
+	if mergedStatus.State != "Complete" {
+		t.Errorf("MergeStatus was supposed return an AquaScannerAccountStatus with State: %v but got %v when oldStatus is in a non zero state", newStatus.Message, mergedStatus.Message)
+	}
+
+	if mergedStatus.AccountName != "Matt Damon" {
+		t.Errorf("MergeStatus was supposed return an AquaScannerAccountStatus with AccountName: Matt Damon but got %v when oldStatus.AccountName is Matt Damon", mergedStatus.Message)
+	}
+
+	desiredState := asa.AquaScannerAccountAquaObjectState{ApplicationScope: asa.Created.String()}
+	oldStatus = asa.AquaScannerAccountStatus{Message: "Matt Damon", State: "Failed", AccountName: "Matt Damon", DesiredState: desiredState}
+	newStatus = asa.AquaScannerAccountStatus{Message: "Hello World", State: "Complete"}
+
+	mergedStatus = MergeStatus(oldStatus, newStatus)
+
+	if mergedStatus.DesiredState != desiredState {
+		t.Errorf("MergeStatus was supposed return an AquaScannerAccountStatus with DesiredState unchanged but got %v", mergedStatus.DesiredState)
+	}
+}
+
+func mockGetJwtFail() (string, error) {
+	return "", errors.New("this func failed")
+}
+
+func mockGetJwtPass() (string, error) {
+	return "", nil
+}
+
+func TestSetEnvForAsaLoginCheck(t *testing.T) {
+	SetEnvForAsaLoginCheck(mockGetJwtFail, ctrl.Log)
+	b, _ := strconv.ParseBool(os.Getenv("ASA_LOGIN_CHECK_DID_FAIL"))
+	if !b {
+		t.Errorf("SetEnvForAsaLoginCheck was supposed to return true but got %v", os.Getenv("ASA_LOGIN_CHECK_DID_FAIL"))
+	}
+
+	SetEnvForAsaLoginCheck(mockGetJwtPass, ctrl.Log)
+	c, _ := strconv.ParseBool(os.Getenv("ASA_LOGIN_CHECK_DID_FAIL"))
+
+	if c {
+		t.Errorf("SetEnvForAsaLoginCheck was supposed to return false but got %v", os.Getenv("ASA_LOGIN_CHECK_DID_FAIL"))
+	}
+}
 
 func TestUtilsGetTechnicalContact(t *testing.T) {
 	technicalContactAnnotation := "- role: Product Owner\n  email: matt.damon@gov.bc.ca\n  rocketchat:\n- role: Technical Lead\n  email: patrick.simonian@gov.bc.ca\n  rocketchat:\n"

@@ -1,5 +1,5 @@
 # Adds namespace to all resources.
-namespace: aqua-scanner-operator-system
+namespace: openshift-bcgov-aqua
 
 # Value of this field is prepended to the
 # names of all resources, e.g. a deployment named
@@ -9,8 +9,8 @@ namespace: aqua-scanner-operator-system
 namePrefix: aqua-scanner-operator-
 
 # Labels to add to all resources and selectors.
-#commonLabels:
-#  someName: someValue
+commonLabels:
+ app-version: v1
 
 bases:
 - ../crd
@@ -18,7 +18,13 @@ bases:
 - ../manager
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in
 # crd/kustomization.yaml
-#- ../webhook
+- ../webhook
+# -------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------
+# CERT MANAGER NOT IN USE UNTIL STRA COMPLETE, INSTEAD USING SERVICE-SERVING-CERT 
+# Reference: https://docs.openshift.com/container-platform/4.7/security/certificates/service-serving-certificate.html
+# -------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------
 # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER'. 'WEBHOOK' components are required.
 #- ../certmanager
 # [PROMETHEUS] To enable prometheus monitor, uncomment all sections with 'PROMETHEUS'.
@@ -29,14 +35,14 @@ patchesStrategicMerge:
 # If you want your controller-manager to expose the /metrics
 # endpoint w/o any authn/z, please comment the following line.
 - manager_auth_proxy_patch.yaml
-
+- manager_env_patch.yaml
 # Mount the controller config file for loading manager configurations
 # through a ComponentConfig type
 #- manager_config_patch.yaml
 
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in
 # crd/kustomization.yaml
-#- manager_webhook_patch.yaml
+- manager_webhook_patch.yaml
 
 # [CERTMANAGER] To enable cert-manager, uncomment all sections with 'CERTMANAGER'.
 # Uncomment 'CERTMANAGER' sections in crd/kustomization.yaml to enable the CA injection in the admission webhooks.

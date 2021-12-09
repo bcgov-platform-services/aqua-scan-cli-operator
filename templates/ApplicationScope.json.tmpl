@@ -5,8 +5,16 @@
   "categories": {
     "artifacts": {
       "image": {
-        "expression": "(v1 && v2) || (v3 && v4)",
+        "expression": "(v1 && v2) || (v3 && v4) || (v5 && v6)",
         "variables": [
+          {
+            "attribute": "aqua.registry",
+            "value": "\"OpenShift\""
+          },
+          {
+            "attribute": "image.repo",
+            "value": "{{ .NamespacePrefix }}-*"
+          },
           {
             "attribute": "aqua.registry",
             "value": "\"OCP Registry\""
