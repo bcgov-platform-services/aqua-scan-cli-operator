@@ -28,6 +28,10 @@ Use the [Openshift SDK guide](https://docs.openshift.com/container-platform/4.8/
 
 The image is pushed into our shared dockerhub account. Only users with access to the account may push. 
 
+#### Updating Image Version
+
+Update the [`VERSION`](https://github.com/bcgov-platform-services/aqua-scan-cli-operator/blob/main/Makefile#L6) variable in the Makefile
+
 #### To build image locally
 
 Building locally also involves running `envTest` which requires a special environment. The [kubebuilder documentation](https://book.kubebuilder.io/reference/envtest.html) outlines setting up env test correctly. Wherever you unpack the kubebuilder binaries is the path you will need to set for `KUBEBUILDER_ASSETS`. Once this is complete you can run `docker-build` similar to
@@ -40,6 +44,21 @@ Building locally also involves running `envTest` which requires a special enviro
 
 ### Generating Manifests
 
+Manifest generation is still hokey and does require improvements. 
+
+1. Make sure your kustomize manifests have been generated and everything is up to date. `make manifests && make generate`
+2. Run the custom `make genmanifests`. This will generate a single `operator.yaml` file that you can use to translate to CCM
+  - Remove the `Namespace` Object. In CCM we are not creating a seperate namespace for the operator (it lives where Aqua lives)
+  - Remove any namespace references in other objects that refer to the above deleted `Namespace`
+  - Remove the `app-version: <version>` label and selector from all objects (keeping the label/selector is backwards incompatible)
+3. Test infrastructure code seperately by running `oc apply` as needed
+4. Make sure you have the latest image in dockerhub (see README on docker builds and deploys)
+I have made a custom make command to pull out all the prod infracode you'll need for CCM make genmanifests
+a. use that code as a template for translating to CCM
+b. ensure no new namespaces are created!
+c. modify the translated code and remove:
+namespace references
+additional labels/selectors such as app-version: v1 from services and deployments
 `make genmanifests` will generate the file called `operator.yaml`
 
 ### Other commands
